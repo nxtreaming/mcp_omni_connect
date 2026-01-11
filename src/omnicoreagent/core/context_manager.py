@@ -122,11 +122,8 @@ class AgentLoopContextManager:
         
         if self.config.mode == ContextManagementMode.TOKEN_BUDGET:
             current_tokens = self.get_current_token_count(messages)
-            logger.info(f"Current token count: {current_tokens}")
             threshold = self.config.value * (self.config.threshold_percent / 100)
-            logger.info(f"Threshold: {threshold}")
             should_trigger = current_tokens > threshold
-            logger.info(f"Should trigger: {should_trigger}")
             
             if should_trigger:
                 logger.info(
