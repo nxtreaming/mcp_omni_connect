@@ -71,8 +71,6 @@ class APSchedulerBackend(BackgroundTaskScheduler):
         """Start the scheduler."""
         if not self._running:
             try:
-                # If scheduler was previously shut down, we might need to recreate it
-                # as APScheduler doesn't always support restarting after shutdown(wait=True)
                 try:
                     self.scheduler.start()
                 except RuntimeError:

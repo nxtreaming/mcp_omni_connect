@@ -73,7 +73,6 @@ class BackgroundOmniCoreAgent(OmniCoreAgent):
         self.run_count = 0
         self.error_count = 0
 
-        # Task Queue for reliable execution
         queue_size = config.get("queue_size", 100)
         self._task_queue = asyncio.Queue(maxsize=queue_size)
         self._worker_task = None
@@ -164,10 +163,8 @@ class BackgroundOmniCoreAgent(OmniCoreAgent):
         if self._worker_task:
             self._worker_task.cancel()
             try:
-                # Wait for worker to finish current task or cancelled
                 await self._worker_task
                 
-                # Wait for queue to process if possible (graceful shutdown)
                 if not self._task_queue.empty():
                     logger.warning(
                         f"Agent {self.agent_id} stopping with {self._task_queue.qsize()} pending tasks"
@@ -183,7 +180,6 @@ class BackgroundOmniCoreAgent(OmniCoreAgent):
         logger.info(f"Worker loop started for agent {self.agent_id}")
         while not self._shutdown_event.is_set():
             try:
-                # Use wait_for to check shutdown_event periodically
                 try:
                     task_data = await asyncio.wait_for(
                         self._task_queue.get(), timeout=1.0
@@ -204,7 +200,7 @@ class BackgroundOmniCoreAgent(OmniCoreAgent):
                 break
             except Exception as e:
                 logger.error(f"Error in worker loop for {self.agent_id}: {e}")
-                await asyncio.sleep(1)  # Prevent tight error loop
+                await asyncio.sleep(1)
 
         logger.info(f"Worker loop exited for agent {self.agent_id}")
 
@@ -212,9 +208,6 @@ class BackgroundOmniCoreAgent(OmniCoreAgent):
         """Submit a task to the queue for execution."""
         try:
             timestamp = datetime.now(timezone.utc).isoformat()
-            # Non-blocking put if queue is full, or wait with timeout?
-            # Background tasks usually want to be non-blocking to the caller.
-            # Using wait_for to allow small backpressure but fail if overloaded.
             
             queue_timeout = task_config.get("queue_timeout", 5.0)
             
@@ -228,7 +221,7 @@ class BackgroundOmniCoreAgent(OmniCoreAgent):
             
         except asyncio.TimeoutError:
             logger.error(f"Task queue full for agent {self.agent_id}, dropping task")
-            raise  # Re-raise so caller knows it failed
+            raise
         except Exception as e:
             logger.error(f"Failed to submit task for agent {self.agent_id}: {e}")
             raise
@@ -286,10 +279,8 @@ class BackgroundOmniCoreAgent(OmniCoreAgent):
                 session_id=task_session_id, event=status_event
             )
 
-            # Get timeout from task config
-            timeout = task_config.get("timeout", 300)  # Default 5 minutes
+            timeout = task_config.get("timeout", 300)
             
-            # Execute with timeout
             try:
                 result = await asyncio.wait_for(
                     self._execute_with_retries(task_config),

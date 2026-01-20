@@ -316,11 +316,47 @@ class BaseReactAgent:
 
             if "<" in response and ">" in response:
                 return ParsedResponse(
-                    error="Response contains XML but not in required format. Use <thought>, <final_answer> or during tool calls use <tool_call> tag or <agent_call> tag during agent calls."
+                    error=(
+                        f"PARSE ERROR: Response contains XML but violates the required format.\n\n"
+                        f"❌ You used (WRONG):\n"
+                        f"   {response[:200]}...\n\n"
+                        f"✓ You Must use one of these structured blocks based on your intent (CORRECT):\n"
+                        f"   • IF you want to Think/Reason:\n"
+                        f"     <thought>I will analyze...</thought>\n\n"
+                        f"   • IF you want to provide the Final Answer:\n"
+                        f"     <final_answer>The finding is...</final_answer>\n\n"
+                        f"   • IF you want to Call a Tool:\n"
+                        f"     <tool_call>\n"
+                        f"       <tool_name>tool_name</tool_name>\n"
+                        f"       <parameters><param>value</param></parameters>\n"
+                        f"     </tool_call>\n\n"
+                        f"ACTION REQUIRED:\n"
+                        f"- Decide your intent (Reasoning, Answer, or Tool Call).\n"
+                        f"- Retry using ONLY the specific valid tag for that intent.\n"
+                        f"- Do not use markdown code blocks ```xml ... ``` around the tags."
+                    )
                 )
 
             return ParsedResponse(
-                error="Response must use XML format. Wrap in <thought> and <final_answer> or call  pigment tag or <agent_call> tag during agent calls. or <tool_calls> tag during tool calls."
+                error=(
+                    f"PARSE ERROR: Response does not use required XML format.\n\n"
+                    f"❌ You used (WRONG):\n"
+                    f"   {response[:200]}...\n\n"
+                    f"✓ You Must use one of these structured blocks based on your intent (CORRECT):\n"
+                    f"   • IF you want to Think/Reason:\n"
+                    f"     <thought>I will analyze...</thought>\n\n"
+                    f"   • IF you want to provide the Final Answer:\n"
+                    f"     <final_answer>The finding is...</final_answer>\n\n"
+                    f"   • IF you want to Call a Tool:\n"
+                    f"     <tool_call>\n"
+                    f"       <tool_name>tool_name</tool_name>\n"
+                    f"       <parameters><param>value</param></parameters>\n"
+                    f"     </tool_call>\n\n"
+                    f"ACTION REQUIRED:\n"
+                    f"- Decide your intent (Reasoning, Answer, or Tool Call).\n"
+                    f"- Retry using ONLY the specific valid tag for that intent.\n"
+                    f"- Do not output plain text outside tags."
+                )
             )
 
         except Exception as e:
@@ -813,7 +849,14 @@ class BaseReactAgent:
                     data = result.get("data")
                     message = result.get("message", "")
                     
-                    SKIP_OFFLOAD_TOOLS = {"read_artifact", "tail_artifact", "search_artifact", "list_artifacts"}
+                    SKIP_OFFLOAD_TOOLS = {
+                    "read_artifact", 
+                    "tail_artifact", 
+                    "search_artifact", 
+                    "list_artifacts",
+                    "memory_view",
+                    "memory_create_update"
+                }
                     
                     if (data is not None 
                         and self.tool_offloader.config.enabled 
@@ -1356,6 +1399,18 @@ class BaseReactAgent:
         session_state.messages.insert(
             0, Message(role="system", content=updated_system_prompt)
         )
+        
+        for i in range(len(session_state.messages) - 1, -1, -1):
+            msg = session_state.messages[i]
+            if msg.role == "user":
+                from datetime import datetime
+                datetime_info = f"[CURRENT_DATETIME: {datetime.now().strftime('%Y-%m-%d %H:%M:%S %Z')}]\n\n"
+                session_state.messages[i] = Message(
+                    role="user",
+                    content=datetime_info + msg.content
+                )
+                break
+
 
     async def sub_agents_registry(self, sub_agents: List[Any]) -> str:
         """
@@ -1820,8 +1875,8 @@ class BaseReactAgent:
                     return {"answer": error_message, "usage": run_usage}
 
                 except Exception as e:
-                    error_message = f"LLM error: {e}"
-                    logger.error(e)
+                    error_message = "Model encountered an error, please do retry again"
+                    logger.error(f"{error_message}: {e}")
                     return {"answer": error_message, "usage": run_usage}
 
                 parsed_response = await self.extract_action_or_answer(
@@ -1904,15 +1959,10 @@ class BaseReactAgent:
                         await execute_action()
 
                 if parsed_response.error is not None:
-                    logger.error(f"Error in parsed response: {parsed_response.error}")
                     session_state.messages.append(
                         Message(
                             role="user",
-                            content=(
-                                f"{parsed_response.error}\n\n"
-                                "Error in your response parsing. Please follow the response format strictly. "
-                                "If the issue persists, provide a final answer to the user and stop."
-                            ),
+                            content=parsed_response.error,
                         )
                     )
                     continue

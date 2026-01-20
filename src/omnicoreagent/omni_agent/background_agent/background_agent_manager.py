@@ -95,7 +95,6 @@ class BackgroundAgentManager:
                 )
                 await self.start()
             else:
-                # If manager is already running, start the worker for this new agent
                 await agent.start_worker()
 
             await self._schedule_agent(agent_id, agent)
@@ -381,7 +380,6 @@ class BackgroundAgentManager:
 
             agent = self.agents[agent_id]
 
-            # Ensure worker is running
             if not agent.is_worker_running:
                 await agent.start_worker()
 

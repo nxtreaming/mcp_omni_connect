@@ -1,44 +1,36 @@
 """
-DeepAgent: Advanced OmniCoreAgent with Autonomous Sub-Agent Spawning and RPI Workflow.
+DeepAgent Package - General-purpose agent with multi-agent orchestration.
 
-This module provides DeepAgent, which extends OmniCoreAgent with:
-- Autonomous sub-agent spawning (sync, parallel, background)
-- RPI (Research, Plan, Implement) workflow methods
-- Persistent memory via memory_tool_backend (always enabled)
-- Project-based file organization
+DeepAgent = OmniCoreAgent + Multi-Agent Orchestration
 
-Example:
-    ```python
-    from omnicoreagent import DeepAgent
-    
-    agent = DeepAgent(
-        name="Analyst",
-        system_instruction="You are a market research analyst.",
-        model_config={"provider": "openai", "model": "gpt-4o"},
-    )
-    
-    await agent.initialize()
-    await agent.research("Analyze competitor landscape")
-    await agent.plan("Develop market strategy")
-    await agent.cleanup()
-    ```
+User provides:
+- system_instruction: Defines domain
+- tools: Defines capabilities
+
+DeepAgent adds:
+- DeepAgentPromptBuilder with clean structure
+- Subagent spawning tools
+- Memory-first workflow
+
+Prompt Structure:
+1. <system_instruction> - User's domain instruction
+2. <deep_agent_capabilities> - Orchestration capabilities  
+3. {SYSTEM_SUFFIX} - ReAct pattern, tools, etc.
 """
 
 from .deep_agent import DeepAgent
-from .sub_agent_manager import SubAgentManager, build_sub_agent_tools
 from .prompts import (
-    SUB_AGENT_EXTENSION,
-    MEMORY_PERSISTENCE_EXTENSION,
-    RPI_WORKFLOW_EXTENSION,
-    build_enhanced_instruction,
+    DeepAgentPromptBuilder,
+    DEEP_AGENT_ORCHESTRATION_PROMPT,
+    build_deep_agent_prompt,
 )
+from .subagent_factory import SubagentFactory, build_subagent_tools
 
 __all__ = [
     "DeepAgent",
-    "SubAgentManager",
-    "build_sub_agent_tools",
-    "SUB_AGENT_EXTENSION",
-    "MEMORY_PERSISTENCE_EXTENSION",
-    "RPI_WORKFLOW_EXTENSION",
-    "build_enhanced_instruction",
+    "DeepAgentPromptBuilder",
+    "DEEP_AGENT_ORCHESTRATION_PROMPT",
+    "build_deep_agent_prompt",
+    "SubagentFactory",
+    "build_subagent_tools",
 ]

@@ -777,47 +777,84 @@ result = await agent.run("List all Python files and get latest commits")
 
 ---
 
-### 6. 🧠 Deep Agent (Autonomous RPI Workflow)
+### 6. 🧠 DeepAgent (Multi-Agent Orchestration)
 
-The **Deep Agent** is an advanced extension of OmniCoreAgent designed for complex, multi-step tasks. It combines an autonomous orchestration layer with a structured **RPI (Research, Plan, Implement)** workflow.
+**DeepAgent** = OmniCoreAgent + Multi-Agent Orchestration
 
-#### Key Capabilities
-- **Autonomous Sub-Agents**: The agent decides *on its own* when to spawn helper agents (sync, parallel, or background) to handle sub-tasks.
-- **RPI Workflow**: Built-in methods for `research()`, `plan()`, `implement()`, and `iterate()` to tackle complex objectives systematically.
-- **Persistent Memory**: Automatically enables file-based memory (`/memories/projects/...`) to store research, plans, and progress across sessions.
-- **Project Structure**: Organizes all artifacts into a clean, project-based directory structure.
+DeepAgent automatically breaks down complex tasks and delegates them to specialized subagents running in parallel. The lead agent coordinates the work and synthesizes findings from memory.
 
-#### Usage Example
+#### How It Works
+
+For complex tasks, DeepAgent can spawn parallel subagents:
+1. Analyzes task complexity
+2. Creates memory plan (`/memories/task_name/`)
+3. Spawns specialized subagents in parallel
+4. Subagents write findings to memory (not context)
+5. Lead agent reads from memory to synthesize
+
+**Architecture Flow**:
+```
+User Query → Lead Agent → Spawn Subagents (parallel)
+                ↓
+            [Subagent A] → Write to /memories/subtask_a/
+            [Subagent B] → Write to /memories/subtask_b/
+            [Subagent C] → Write to /memories/subtask_c/
+                ↓
+Lead Agent reads memory → Synthesize → Final Answer
+```
+
+#### Quick Start
 
 ```python
 from omnicoreagent import DeepAgent
 
-# 1. Initialize
+# Create a DeepAgent for any domain
 agent = DeepAgent(
-    name="Architect",
-    system_instruction="You are a senior solutions architect.",
+    name="research_coordinator",
+    system_instruction="You are a tech research coordinator.",
     model_config={"provider": "openai", "model": "gpt-4o"},
-    project_name="cloud_migration_v1"
 )
 
-await agent.initialize()
+await agent.initialize()  # Registers orchestration tools
 
-# 2. Research Phase (Agent may spawn parallel sub-agents)
-# "I need 3 sub-agents to research AWS, Azure, and GCP options..."
-await agent.research("Compare cloud providers for high-frequency trading")
+# Run complex query - automatically spawns subagents
+result = await agent.run("""
+Research the benefits of Rust vs Go for cloud-native applications.
+Consider performance, developer experience, and ecosystem maturity.
+""")
+# DeepAgent spawns 3 parallel subagents:
+# - Performance researcher
+# - DevEx analyst  
+# - Ecosystem analyst
 
-# 3. Plan Phase (Creates detailed implementation plan)
-await agent.plan("Design migration strategy for legacy monolith")
-
-# 4. Implement Phase (Executes plan step-by-step with verification)
-await agent.implement("/memories/projects/cloud_migration_v1/plans/strategy.md")
-
-# 5. Direct Execution (Agent uses its internal tools autonomously)
-# "I'll spawn a background agent to run the load tests..."
-await agent.run("Run load testing suite on the staging environment")
+await agent.cleanup()
 ```
 
-> 💡 **When to Use**: Choose Deep Agent for tasks that require deep thought, extensive research, or breaking down a complex problem into parallel streams of work. It trades speed for thoroughness and reliability.
+#### DeepAgent vs OmniCoreAgent
+
+| Feature | OmniCoreAgent | DeepAgent |
+|---------|---------------|-----------|
+| **Domain** | User-defined | User-defined (same) |
+| **Tools** | User-provided | User-provided + orchestration |
+| **Memory Backend** | Optional | **Always `"local"`** (enforced) |
+| **Orchestration** | No | Automatic subagent spawning |
+| **Best For** | Single-agent tasks | Complex multi-step analysis |
+
+#### Built-in Orchestration Tools
+
+DeepAgent provides two specialized tools to the lead agent:
+
+- **`spawn_subagent`** - Spawn a single focused subagent
+- **`spawn_parallel_subagents`** - Spawn multiple subagents in parallel
+
+Subagents inherit:
+- Parent's model config
+- Parent's tools (MCP + local)
+- Parent's agent config (context management, tool offload, etc.)
+
+> 📚 **Learn More**: See [DeepAgent Documentation](./docs/deep-agent.md) for architecture diagrams, use cases, and best practices.
+
+> 💡 **When to Use**: Use DeepAgent when your tasks may benefit from multi-agent orchestration (parallel research, divide-and-conquer analysis, multi-domain expertise).
 
 ### 7. 🛠️ Local Tools System
 

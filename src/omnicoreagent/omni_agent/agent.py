@@ -45,6 +45,7 @@ class OmniCoreAgent:
         agent_config: Optional[Union[Dict[str, Any], AgentConfig]] = None,
         memory_router: Optional[MemoryRouter] = None,
         event_router: Optional[EventRouter] = None,
+        prompt_builder: Optional[Any] = None,
         debug: bool = False,
     ):
         """
@@ -79,7 +80,7 @@ class OmniCoreAgent:
         )
         self.event_router = event_router or EventRouter(event_store_type="in_memory")
         self.config_transformer = config_transformer
-        self.prompt_builder = OmniCoreAgentPromptBuilder(SYSTEM_SUFFIX)
+        self.prompt_builder = prompt_builder or OmniCoreAgentPromptBuilder(SYSTEM_SUFFIX)
         self.agent = None
         self.mcp_client = None
         self.llm_connection = None

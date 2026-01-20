@@ -42,6 +42,9 @@ print(result["response"])
 ### 🚁 I want agents running autonomously
 → **[background_agents](./background_agents)** — Scheduled tasks and queue-based execution.
 
+### 🧠 I want complex multi-step workflows
+→ **[deep_agent](./deep_agent)** — RPI workflow, parallel sub-agents, persistent memory.
+
 ### 🏭 I want to build a real application
 → **[advanced_agent](./advanced_agent)** — E-commerce, flight booking, customer support, due diligence.
 
@@ -58,10 +61,11 @@ print(result["response"])
 ```
 cookbook/
 ├── getting_started/     # Start here! Progressive learning path
+├── deep_agent/          # 🆕 Complex RPI workflows with sub-agents
 ├── workflows/           # Multi-agent orchestration patterns
 ├── background_agents/   # Scheduled and autonomous agents
 ├── advanced_agent/      # Real-world application examples
-├── showcase/            # 🆕 Full production applications
+├── showcase/            # Full production applications
 └── production/          # Production-ready configurations
 ```
 

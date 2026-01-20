@@ -1,0 +1,169 @@
+/* Vula Due Diligence TUI Styles - SIMPLIFIED */
+
+/* Main containers */
+Screen {
+    background: $surface;
+}
+
+/* Dashboard */
+#dashboard-container {
+    height: 100%;
+    padding: 1 2;
+}
+
+#hero {
+    height: auto;
+    padding: 2 0;
+}
+
+#hero-title {
+    text-style: bold;
+    color: $accent;
+    content-align: center middle;
+}
+
+#hero-subtitle {
+    color: $text-muted;
+    content-align: center middle;
+}
+
+.section-title {
+    text-style: bold;
+    color: $primary;
+    padding: 1 0;
+}
+
+#quick-actions {
+    height: auto;
+    padding: 1 0;
+}
+
+.action-buttons {
+    height: auto;
+}
+
+.action-buttons Button {
+    margin: 0 0 1 0;
+    width: 100%;
+}
+
+#recent-activity {
+    height: auto;
+    padding: 1 0;
+}
+
+#recent-table {
+    height: 10;
+}
+
+#tips {
+    height: auto;
+    dock: bottom;
+    padding: 1 0;
+}
+
+.tip-text {
+    color: $text-muted;
+    text-style: italic;
+}
+
+/* Evaluation Screen - SIMPLIFIED */
+#eval-scroll {
+    height: 100%;
+    overflow-y: auto;
+}
+
+#input-section {
+    height: auto;
+    padding: 2;
+    border: solid $primary;
+    background: $surface;
+}
+
+.hint {
+    color: $warning;
+    padding: 0 0 1 0;
+}
+
+#company-input {
+    margin: 1 0;
+    border: solid $accent;
+}
+
+#start-btn {
+    width: 100%;
+    margin: 1 0 0 0;
+}
+
+#status-section {
+    height: auto;
+    padding: 2;
+    border: solid $secondary;
+    margin: 1 0;
+}
+
+#status-text {
+    padding: 1 0;
+    color: $text;
+}
+
+#log-section {
+    height: 1fr;
+    padding: 2;
+    border: solid $accent;
+    margin: 1 0;
+}
+
+#eval-log {
+    height: 100%;
+    min-height: 20;
+}
+
+/* Batch Processing */
+#batch-container {
+    height: 100%;
+    padding: 1 2;
+}
+
+#csv-upload {
+    height: auto;
+    padding: 1 0;
+}
+
+#batch-config {
+    height: auto;
+    padding: 1 0;
+}
+
+#overall-progress {
+    height: auto;
+    padding: 1 0;
+    border: solid $primary;
+}
+
+#progress-bar {
+    height: 1;
+}
+
+#company-status {
+    height: 1fr;
+    padding: 1 0;
+}
+
+#status-table {
+    height: 100%;
+}
+
+#batch-summary {
+    height: auto;
+    dock: bottom;
+    padding: 1 0;
+}
+
+/* Colors */
+$primary: #1E40AF;
+$secondary: #8B5CF6;
+$success: #10B981;
+$warning: #F59E0B;
+$danger: #EF4444;
+$accent: #06B6D4;
