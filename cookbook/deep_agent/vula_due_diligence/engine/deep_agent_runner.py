@@ -1,7 +1,5 @@
 """
 DeepAgent Runner for Vula Due Diligence System
-
-FIXED: Uses correct DeepAgent API with local_tools for due diligence tools.
 """
 
 import asyncio
@@ -9,37 +7,13 @@ import logging
 import os
 import sys
 from datetime import datetime
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Callable
+from typing import Any, Dict, Optional, Callable
 import uuid
-
-# IMPORTS: Prioritize installed package, fallback to relative path for dev
-try:
-    from omnicoreagent import DeepAgent
-    from omnicoreagent import ToolRegistry
-except ImportError:
-    # Add parent to path for imports (DEV MODE)
-    repo_root = Path(__file__).parent.parent.parent.parent.parent
-    sys.path.insert(0, str(repo_root / "src"))
-    from omnicoreagent import DeepAgent
-    from omnicoreagent import ToolRegistry
-    logging.warning("Using relative path imports for omnicoreagent (Dev Mode)")
+from omnicoreagent import DeepAgent
+from vula_tools import create_vula_tools
 
 logger = logging.getLogger(__name__)
 
-
-# Import robust tools from vula_tools
-try:
-    from .vula_tools import create_vula_tools
-    HAS_VULA_TOOLS = True
-except ImportError:
-    # Try absolute import if running from different context
-    try:
-        from engine.vula_tools import create_vula_tools
-        HAS_VULA_TOOLS = True
-    except ImportError:
-        HAS_VULA_TOOLS = False
-        logger.warning("Could not import vula_tools")
 
 
 class VulaDeepAgentRunner:
@@ -49,8 +23,8 @@ class VulaDeepAgentRunner:
     
     def __init__(
         self,
-        model: str = "gemini-2.5-pro",
-        provider: str = "gemini",
+        model: str = "gpt-4.1",
+        provider: str = "openai",
         tavily_key: Optional[str] = None,
         max_steps: int = 100,
         debug: bool = False,
@@ -61,37 +35,123 @@ class VulaDeepAgentRunner:
         self.max_steps = max_steps
         self.debug = debug
         self.agent = None
+
+        # Map LLM_API_KEY to provider specific key if set
+        llm_key = os.getenv("LLM_API_KEY")
+        if llm_key:
+            if provider == "openai":
+                os.environ["OPENAI_API_KEY"] = llm_key
+            elif provider == "google" or provider == "gemini":
+                os.environ["GOOGLE_API_KEY"] = llm_key
+            elif provider == "anthropic":
+                os.environ["ANTHROPIC_API_KEY"] = llm_key
         
     def _build_system_instruction(self) -> str:
-        return """You are a **World-Class Investment Analyst** specializing in **African SME Funding**.
+        return """You are a **World-Class Investment Analyst** for **VulaOS** - AI-powered SME funding infrastructure for Africa.
 
-Your goal is to screen companies for Vula (grants, debt, equity) with a deep understanding of the local context.
+## YOUR MISSION
+Evaluate African SMEs for funding eligibility across grants, debt, and equity—reducing evaluation time by 60-90% while maintaining institutional-grade rigor.
 
-**Core Evaluation Criteria (Africa-First)**:
-1.  **Financial Reality**: Look beyond audited financials. Assess traction via transaction volume, mobile money integration, and partnerships.
-2.  **Macro Risk**: Evaluate exposure to currency depreciation (FX), regulatory changes, and infrastructure reliance.
-3.  **Local Competitiveness**: How does the solution compare to *local* incumbents (including informal ones), not just global SaaS?
-4.  **Impact**: Alignment with SDGs is MANDATORY.
+## VULA CONTEXT
+- Vula helps African SMEs find their best funding options (grants, debt, equity)
+- VulaOS reduces application evaluation times by 60-90% for investors and grantmakers
+- Our mission is to 10x investment into African enterprises
+- The continent's largest youth workforce represents a massive opportunity
 
-**Available Tools**:
-- Internet search (Tavily): For real-time data and news.
-- assess_macro_risk: Check country-specific risks (FX, Regulations).
-- analyze_competitor_landscape: Create a feature matrix vs local competitors.
-- generate_dashboard_infographic: Create professional one-pager.
-- generate_financial_chart: Create revenue projections.
-- generate_html_report: Create the final detailed report.
-- save_evaluation_memo: Save the investment decision.
+## PARALLEL SUBAGENT STRATEGY
 
-**Workflow**:
-1.  **Discovery**: Textual research on Product, Team, and Market.
-2.  **Risk Analysis**:
-    - Call `assess_macro_risk` for the HQ country.
-    - Call `analyze_competitor_landscape` to map defensibility.
-3.  **Financial Analysis**: Project revenues and generate chart.
-4.  **Synthesis**: Generate `generate_dashboard_infographic`.
-5.  **Reporting**: Compile findings into `generate_html_report` and `save_evaluation_memo`.
+**CRITICAL**: For comprehensive due diligence, you MUST leverage parallel subagent spawning to investigate multiple domains SIMULTANEOUSLY. This is what makes VulaOS powerful.
 
-**Tone**: Professional, insightful, and aware of the "African Opportunity".
+### Recommended Parallel Investigation Structure:
+
+Use `spawn_parallel_subagents` with these specialists:
+
+1. **financial_analyst** - Analyze revenues, unit economics, cash position, burn rate
+2. **market_analyst** - TAM/SAM/SOM, market dynamics, growth trajectory
+3. **team_analyst** - Founder backgrounds, execution track record, team composition
+4. **competitive_analyst** - Local competitor mapping, defensibility, moats
+5. **risk_analyst** - Macro risks (FX, regulatory), execution risks, market risks
+6. **impact_analyst** - SDG alignment, job creation, ESG metrics
+
+Each subagent should:
+- Focus ONLY on their assigned domain
+- Cite all sources
+- Provide confidence scores (0-100%)
+- Save findings to their designated memory path
+
+## EVALUATION FRAMEWORK (Africa-First)
+
+### 1. Financial Reality Check
+- Look beyond audited financials (rare in African SME context)
+- Assess traction via: transaction volume, mobile money integration, partnerships
+- Consider unit economics in local currency context
+- Evaluate runway and path to sustainability
+
+### 2. Macro Risk Assessment
+- **FX Risk**: Currency depreciation impact on USD-denominated investments
+- **Regulatory Risk**: Policy stability, licensing requirements
+- **Infrastructure Risk**: Power reliability, internet penetration
+
+### 3. Competitive Defensibility
+- Compare to LOCAL incumbents (including informal sector)
+- Assess distribution advantages unique to Africa
+- Evaluate partnership moats (telcos, banks, government)
+
+### 4. Impact & ESG (MANDATORY for grants)
+- SDG alignment is REQUIRED for grant eligibility
+- Youth employment prioritization
+- Gender lens investing criteria
+- Environmental sustainability
+
+## AVAILABLE TOOLS
+
+**Research Tools:**
+- Internet search (Tavily): Real-time data and news
+- `assess_macro_risk`: Country-specific risk assessment
+- `analyze_competitor_landscape`: Feature matrix vs competitors
+
+**Output Generation Tools:**
+- `generate_dashboard_infographic`: Goldman Sachs-style one-pager (call FIRST)
+- `generate_financial_chart`: Revenue projections (Bear/Base/Bull)
+- `generate_html_report`: Final comprehensive report (call LAST, pass image paths!)
+- `save_evaluation_memo`: Investment committee memo
+
+## WORKFLOW
+
+### Phase 1: RESEARCH (Use Parallel Subagents)
+→ Spawn 4-6 specialist subagents to investigate simultaneously
+→ Financial, Market, Team, Competitive, Risk, Impact domains
+
+### Phase 2: VERIFY
+→ Read all subagent findings from memory
+→ Identify gaps or contradictions
+→ Calculate confidence scores per domain
+
+### Phase 3: SYNTHESIZE
+→ Cross-reference findings across domains
+→ Identify patterns and insights
+→ Form investment recommendation
+
+### Phase 4: GENERATE OUTPUTS
+→ Call `generate_dashboard_infographic` with key metrics
+→ Call `generate_financial_chart` with projections
+→ Call `generate_html_report` with sections AND image paths
+→ Call `save_evaluation_memo` for final decision
+
+## RECOMMENDATION FRAMEWORK
+
+| Rating | Criteria | Action |
+|--------|----------|--------|
+| **FUND** | Strong fundamentals, manageable risks, clear path to scale | Proceed to term sheet |
+| **CONDITIONAL** | Promising but gaps exist | Proceed with conditions/milestones |
+| **PASS** | High risk or poor fundamentals | Do not invest at this time |
+
+## OUTPUT QUALITY STANDARDS
+- Every output should be investor-presentation ready
+- Cite sources for ALL data points
+- Include confidence scores per domain (0-100%)
+- Acknowledge limitations and data gaps honestly
+- Professional tone with African opportunity awareness
 """
 
     async def initialize(self):
@@ -111,10 +171,6 @@ Your goal is to screen companies for Vula (grants, debt, equity) with a deep und
                 ],
             })
         
-        # Local tools for due diligence using robust unified registry
-        local_tools = None
-        if HAS_VULA_TOOLS:
-            local_tools = create_vula_tools()
         
         # Initialize DeepAgent with CORRECT API
         self.agent = DeepAgent(
@@ -125,7 +181,7 @@ Your goal is to screen companies for Vula (grants, debt, equity) with a deep und
                 "model": self.model,
             },
             mcp_tools=mcp_tools if mcp_tools else None,
-            local_tools=local_tools,  # CORRECT: single registry
+            local_tools=create_vula_tools(),
             agent_config={
                 "max_steps": self.max_steps,
             },
@@ -134,7 +190,9 @@ Your goal is to screen companies for Vula (grants, debt, equity) with a deep und
         
         await self.agent.initialize()
         logger.info(f"VulaDeepAgent initialized: model={self.model}, tavily={bool(self.tavily_key)}")
+       
 
+        
     async def _monitor_events(
         self,
         session_id: str,
@@ -190,7 +248,7 @@ Your goal is to screen companies for Vula (grants, debt, equity) with a deep und
         )
         
         try:
-            # Pass session_id to run
+            # Run the evaluation
             result = await self.agent.run(task, session_id=session_id)
             elapsed = (datetime.now() - start_time).total_seconds()
             
@@ -221,47 +279,22 @@ Your goal is to screen companies for Vula (grants, debt, equity) with a deep und
                 pass
     
     def _build_task(self, company_name: str, profile: Optional[Dict] = None) -> str:
-        profile = profile or {}
-        sector = profile.get("sector", "Not specified")
-        geography = profile.get("geography", "Africa")
+        """
+        Build the evaluation task.
         
-        return f"""# SME Due Diligence Evaluation
+        NOTE: The task is minimal to ensure the agent performs legitimate research.
+        We only provide the company name and the African context.
+        """
+        return f"""# Due Diligence Request
 
-**Company**: {company_name}
-**Sector**: {sector}
-**Geography**: {geography}
+**Company Name**: {company_name}
+**Context**: African Startup / Company
 
-## Instructions
+---
 
-Conduct comprehensive due diligence:
-
-1. **Research** (use internet search):
-   - Company website, news, funding history
-   - Founders and team background
-   - Market and competitors
-
-2. **Analyze** these domains:
-   - Financial health (revenue, growth, unit economics)
-   - Market opportunity (TAM/SAM/SOM)
-   - Team & execution capability
-   - Impact & ESG (job creation, SDG alignment)
-   - Risks (regulatory, market, execution)
-
-3. **Generate Outputs**:
-   - Use `generate_financial_chart` for revenue projections
-   - Use `generate_html_report` for full report (pass the image paths!)
-   - Use `generate_dashboard` for dashboard (pass the image paths!)
-   - Use `save_evaluation_memo` for final decision
-
-4. **Provide Recommendation**:
-   - FUND: Strong opportunity, proceed
-   - CONDITIONAL: Proceed with conditions
-   - PASS: Do not invest
-
-Include confidence scores (0-100%) for each domain.
-Cite all sources from your research.
-
-Begin your evaluation now."""
+Conduct a comprehensive due diligence evaluation for this company.
+Use your parallel subagent strategy to investigate all domains simultaneously.
+Generate all required outputs (dashboard, chart, report, memo) at the end."""
 
     async def cleanup(self):
         if self.agent:
