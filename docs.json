@@ -1,0 +1,129 @@
+{
+    "$schema": "https://mintlify.com/docs.json",
+    "theme": "maple",
+    "name": "OmniCoreAgent",
+    "description": "The AI Agent Framework Built for Production",
+    "favicon": "/docs/assets/logo_light.svg",
+    "colors": {
+        "primary": "#0D9373",
+        "light": "#07C983",
+        "dark": "#0D9373"
+    },
+    "navbar": {
+        "links": [
+            {
+                "label": "GitHub",
+                "href": "https://github.com/omnirexflora-labs/omnicoreagent",
+                "icon": "github"
+            }
+        ],
+        "primary": {
+            "type": "button",
+            "label": "Get Started",
+            "href": "docs/getting-started/quickstart"
+        }
+    },
+    "navigation": {
+        "dropdowns": [
+            {
+                "dropdown": "Documentation",
+                "icon": "book",
+                "description": "Learn how to use OmniCoreAgent",
+                "groups": [
+                    {
+                        "group": "Get Started",
+                        "pages": [
+                            "docs/index",
+                            "docs/getting-started/installation",
+                            "docs/getting-started/quickstart"
+                        ]
+                    },
+                    {
+                        "group": "Core Concepts",
+                        "pages": [
+                            "docs/core-concepts/overview",
+                            "docs/core-concepts/architecture",
+                            "docs/core-concepts/skills",
+                            "docs/core-concepts/memory",
+                            "docs/core-concepts/events",
+                            "docs/core-concepts/mcp",
+                            "docs/core-concepts/sub-agents",
+                            "docs/core-concepts/background-agents",
+                            "docs/core-concepts/deep-agent",
+                            "docs/core-concepts/workflows"
+                        ]
+                    },
+                    {
+                        "group": "How-To Guides",
+                        "pages": [
+                            "docs/how-to-guides/basic-usage",
+                            "docs/how-to-guides/configuration",
+                            "docs/how-to-guides/commands",
+                            "docs/how-to-guides/memory-management",
+                            "docs/how-to-guides/advanced-tools",
+                            "docs/how-to-guides/observability",
+                            "docs/how-to-guides/models",
+                            "docs/how-to-guides/omniserve"
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    "footer": {
+        "socials": {
+            "x": "https://x.com/abiorhmangana",
+            "github": "https://github.com/omnirexflora-labs/omnicoreagent",
+            "linkedin": "https://www.linkedin.com/in/abiola-a-06b66a1a4/"
+        },
+        "links": [
+            {
+                "header": "Resources",
+                "items": [
+                    {
+                        "label": "Documentation",
+                        "href": "https://github.com/omnirexflora-labs/omnicoreagent/tree/main/docs"
+                    },
+                    {
+                        "label": "Examples",
+                        "href": "https://github.com/omnirexflora-labs/omnicoreagent/tree/main/cookbook"
+                    },
+                    {
+                        "label": "Report Bug",
+                        "href": "https://github.com/omnirexflora-labs/omnicoreagent/issues"
+                    }
+                ]
+            },
+            {
+                "header": "Community",
+                "items": [
+                    {
+                        "label": "GitHub Discussions",
+                        "href": "https://github.com/omnirexflora-labs/omnicoreagent/discussions"
+                    },
+                    {
+                        "label": "Contribute",
+                        "href": "https://github.com/omnirexflora-labs/omnicoreagent/blob/main/CONTRIBUTING.mdx"
+                    }
+                ]
+            }
+        ]
+    },
+    "fonts": {
+        "family": "Inter"
+    },
+    "styling": {
+        "eyebrows": "breadcrumbs",
+        "codeblocks": {
+            "theme": {
+                "light": "github-light",
+                "dark": "github-dark"
+            }
+        }
+    },
+    "integrations": {
+        "telemetry": {
+            "enabled": true
+        }
+    }
+}
