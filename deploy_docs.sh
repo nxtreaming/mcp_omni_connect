@@ -1,5 +1,9 @@
 #!/bin/bash
 echo "🚀 Starting OmniCoreAgent Documentation Deployment..."
-npm install -g mintlify
-cd business/omnicore/omnicore_agent/docs
-mintlify deploy
+if ! command -v mintlify &> /dev/null; then
+    npm install -g mintlify
+fi
+cd docs
+mintlify broken-links
+echo "✅ Documentation links validated."
+echo "ℹ️  To deploy, push your changes to the configured branch in your Git repository."

@@ -5,7 +5,6 @@
     "dark": "/assets/logo_dark.svg",
     "light": "/assets/logo_light.svg"
   },
-  "favicon": "/favicon.png",
   "colors": {
     "primary": "#0D9373",
     "light": "#07C983",
@@ -31,6 +30,8 @@
         "core-concepts/events",
         "core-concepts/mcp",
         "core-concepts/sub-agents",
+        "core-concepts/background-agents",
+        "core-concepts/deep-agent",
         "core-concepts/workflows"
       ]
     },
@@ -45,22 +46,6 @@
         "how-to-guides/observability",
         "how-to-guides/models",
         "how-to-guides/omniserve"
-      ]
-    },
-    {
-      "group": "Cookbook",
-      "pages": [
-        "examples/basic-agent",
-        "examples/deep-researcher",
-        "examples/devops-copilot"
-      ]
-    },
-    {
-      "group": "API Reference",
-      "pages": [
-        "api-reference/agent",
-        "api-reference/memory",
-        "api-reference/tools"
       ]
     }
   ]
