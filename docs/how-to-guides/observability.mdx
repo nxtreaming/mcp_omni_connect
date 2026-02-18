@@ -1,71 +1,62 @@
-# Observability & Tracing
+---
+title: Observability
+description: 'Production metrics, Opik tracing, and per-request performance monitoring'
+icon: 'chart-line'
+---
 
-Ensuring your agents are performing correctly requires visibility into their reasoning cycles, tool calls, and model outputs. OmniCoreAgent integrates with **Opik** to provide production-grade tracing and observability.
+# Production Observability & Metrics
+
+Monitor your agents with built-in metrics and distributed tracing.
+
+---
+
+## Real-time Usage Metrics
+
+OmniCoreAgent tracks every token, request, and millisecond. Each `run()` returns a `metric` object, and you can get cumulative stats anytime.
+
+```python
+result = await agent.run("Analyze this data")
+print(f"Request Tokens: {result['metric'].request_tokens}")
+print(f"Time Taken: {result['metric'].total_time:.2f}s")
+
+# Get aggregated metrics for the agent's lifecycle
+stats = await agent.get_metrics()
+print(f"Avg Response Time: {stats['average_time']:.2f}s")
+```
 
 ---
 
 ## Opik Tracing
 
-Opik allows you to visualize the nested structure of your agent's reasoning. You can see exactly what query was sent, what tools were called (including their inputs and outputs), and the final response.
+Monitor and optimize your agents with deep traces using [Opik](https://opik.ai/).
 
-### Configuration
-
-Enable Opik tracing by setting the following environment variables:
+### Setup
 
 ```bash
+# Add to .env
 OPIK_API_KEY=your_opik_api_key
-OPIK_PROJECT_NAME=my_agent_project
+OPIK_WORKSPACE=your_workspace
 ```
 
-The framework will automatically detect these variables and start sending traces to your Opik dashboard.
+### What's Tracked
 
----
+- LLM call performance
+- Tool execution traces
+- Memory operations
+- Agent workflow
+- Bottleneck identification
 
-## Debug Mode
+### Example Trace
 
-For local development and troubleshooting, you can enable verbose logging.
-
-```python
-agent = OmniCoreAgent(
-    ...
-    debug=True  # Enables detailed console logging
-)
+```
+Agent Execution Trace:
+├── agent_execution: 4.6s
+    ├── tools_registry_retrieval: 0.02s ✅
+    ├── memory_retrieval_step: 0.08s ✅
+    ├── llm_call: 4.5s ⚠️ (bottleneck!)
+    └── action_execution: 0.03s ✅
 ```
 
-In debug mode, you will see:
-- Full system prompts being sent.
-- Raw LLM responses.
-- Detailed connection status for each MCP server.
-- Execution times for local tools.
-
----
-
-## Token & Request Tracking
-
-OmniCoreAgent provides built-in mechanisms to track and limit resource usage to prevent unexpected costs.
-
-### Setting Limits
-```python
-agent_config = {
-    "request_limit": 100,      # Max 100 LLM calls per session
-    "total_tokens_limit": 500000 # Stop if session hits 500k tokens
-}
-```
-
----
-
-## Performance Monitoring
-
-Through the [Event System](../core-concepts/events.mdx), you can calculate performance metrics:
-
-- **Latency**: Measure the time between `user_message` and `final_answer`.
-- **Tool Efficiency**: Track how many tool calls are made per query.
-- **Error Rates**: Monitor `BACKGROUND_TASK_ERROR` events in background agents to identify unstable MCP servers.
-
----
-
-## Best Practices
-
-- **Project Isolation**: Use different `OPIK_PROJECT_NAME` values for development, staging, and production environments.
-- **Sensitive Data**: Be careful when tracing agents that handle PII. Opik traces include full message contents by default.
-- **Monitoring Events**: In production, pipe your [real-time events](../core-concepts/events.mdx) into ELK, Datadog, or Sentry for long-term alerting.
+<Tip>
+Essential for production. Use Metrics for cost/performance monitoring, and Opik for identifying bottlenecks and debugging complex agent logic.
+</Tip>

@@ -19,19 +19,106 @@ mode: 'wide'
 
 **OmniCoreAgent** is a production-grade framework for building autonomous AI agents that persist, reason, and scale. Unlike other frameworks that treat memory as an afterthought, OmniCoreAgent puts **State Management** at the center.
 
+```bash
+pip install omnicoreagent
+```
+
+---
+
+## Get Started
+
 <CardGroup cols={2}>
   <Card
-    title="Quickstart"
+    title="Quick Start"
     icon="bolt"
     href="/getting-started/quickstart"
   >
-    Build your first agent in under 5 minutes.
+    Build your first agent in under 30 seconds
   </Card>
   <Card
-    title="Core Concepts"
-    icon="brain"
-    href="/core-concepts/overview"
+    title="Installation"
+    icon="download"
+    href="/getting-started/installation"
   >
-    Understand the Brain, Memory, and Event Loop.
+    Install with pip, uv, or from source
+  </Card>
+</CardGroup>
+
+---
+
+## Core Capabilities
+
+<CardGroup cols={3}>
+  <Card title="Multi-Tier Memory" icon="database" href="/core-concepts/memory">
+    5 backends (Redis, PostgreSQL, MongoDB, SQLite, in-memory) with hot-swap at runtime
+  </Card>
+  <Card title="MCP Client" icon="plug" href="/core-concepts/mcp">
+    Built-in Model Context Protocol — stdio, SSE, and Streamable HTTP transports
+  </Card>
+  <Card title="Context Engineering" icon="brain-circuit" href="/core-concepts/context-engineering">
+    Dual-layer context management so agents never hit token limits
+  </Card>
+  <Card title="DeepAgent" icon="layer-group" href="/core-concepts/deep-agent">
+    Multi-agent orchestration with the RPI+ workflow for complex research tasks
+  </Card>
+  <Card title="40+ Community Tools" icon="toolbox" href="/core-concepts/community-tools">
+    Search, code execution, APIs, databases, and more — ready to use
+  </Card>
+  <Card title="OmniServe" icon="server" href="/how-to-guides/omniserve">
+    Production API server with WebSocket streaming and multi-tenancy
+  </Card>
+</CardGroup>
+
+---
+
+## See It In Action
+
+```python
+import asyncio
+from omnicoreagent import OmniCoreAgent
+
+async def main():
+    agent = OmniCoreAgent(
+        name="my_agent",
+        system_instruction="You are a helpful assistant.",
+        model_config={"provider": "openai", "model": "gpt-4o"},
+        mcp_tools=[{
+            "name": "filesystem",
+            "transport_type": "stdio",
+            "command": "npx",
+            "args": ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"]
+        }]
+    )
+
+    result = await agent.run("Summarize all .md files in /tmp", session_id="user_1")
+    print(result["response"])
+
+    await agent.cleanup()
+
+asyncio.run(main())
+```
+
+---
+
+## Explore the Docs
+
+<CardGroup cols={2}>
+  <Card title="Architecture" icon="sitemap" href="/core-concepts/architecture">
+    Layered design — ReAct, Storage, and Connectivity
+  </Card>
+  <Card title="Event System" icon="signal-stream" href="/core-concepts/events">
+    Real-time streaming for every tool call, thought, and message
+  </Card>
+  <Card title="Workflows" icon="diagram-project" href="/core-concepts/workflows">
+    Sequential, parallel, and router patterns for multi-agent tasks
+  </Card>
+  <Card title="Model Support" icon="microchip" href="/how-to-guides/models">
+    9+ providers — OpenAI, Anthropic, Gemini, Groq, DeepSeek, and more
+  </Card>
+  <Card title="Observability" icon="chart-line" href="/how-to-guides/observability">
+    Opik tracing, per-request metrics, and production monitoring
+  </Card>
+  <Card title="Configuration" icon="gear" href="/how-to-guides/configuration">
+    Environment variables, agent settings, and model configuration
   </Card>
 </CardGroup>

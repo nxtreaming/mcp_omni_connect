@@ -1,0 +1,108 @@
+---
+title: Context Engineering
+description: 'Dual-layer context management — never hit token limits again'
+icon: 'brain-circuit'
+---
+
+# Context Engineering System
+
+OmniCoreAgent implements **state-of-the-art context engineering** inspired by patterns from Anthropic and Cursor. This dual-layer approach ensures your agents never hit token limits — even during marathon coding sessions or multi-step research tasks.
+
+---
+
+## How the Two Layers Work Together
+
+| Layer | Scope | What It Manages | When It Triggers |
+|-------|-------|-----------------|------------------|
+| **Context Management** | Agent loop messages | User/Assistant conversation, tool call history | When context exceeds `threshold_percent` of limit |
+| **Tool Offloading** | Individual tool responses | Large API responses, file contents, search results | When response exceeds `threshold_tokens` |
+
+---
+
+## Layer 1: Agent Loop Context Management
+
+Prevent token exhaustion during long-running tasks with automatic context management. When enabled, the agent monitors context size and applies truncation or summarization when thresholds are exceeded.
+
+```python
+agent_config = {
+    "context_management": {
+        "enabled": True,
+        "mode": "token_budget",  # or "sliding_window"
+        "value": 100000,  # Max tokens (token_budget) or max messages (sliding_window)
+        "threshold_percent": 75,  # Trigger at 75% of limit
+        "strategy": "summarize_and_truncate",  # or "truncate"
+        "preserve_recent": 4,  # Always keep last N messages
+    }
+}
+```
+
+### Modes
+
+| Mode | Description | Best For |
+|------|-------------|----------|
+| `token_budget` | Manage by total token count | Cost control, API limits |
+| `sliding_window` | Manage by message count | Predictable context size |
+
+### Strategies
+
+| Strategy | Behavior | Trade-off |
+|----------|----------|-----------|
+| `truncate` | Drop oldest messages | Fast, no extra LLM calls |
+| `summarize_and_truncate` | Summarize then drop | Preserves context, adds latency |
+
+---
+
+## Layer 2: Tool Response Offloading
+
+Large tool responses are automatically saved to files, with only a **preview** in context. The agent can retrieve full content on demand using built-in tools.
+
+```python
+agent_config = {
+    "tool_offload": {
+        "enabled": True,
+        "threshold_tokens": 500,  # Offload responses > 500 tokens
+        "max_preview_tokens": 150,  # Show first 150 tokens in context
+        "storage_dir": ".omnicoreagent_artifacts"
+    }
+}
+```
+
+### Token Savings
+
+| Tool Response | Without Offloading | With Offloading | Savings |
+|---------------|-------------------|-----------------|---------|
+| Web search (50 results) | ~10,000 tokens | ~200 tokens | **98%** |
+| Large API response | ~5,000 tokens | ~150 tokens | **97%** |
+| File read (1000 lines) | ~8,000 tokens | ~200 tokens | **97%** |
+
+### Built-in Artifact Tools
+
+Automatically available when offloading is enabled:
+
+| Tool | Purpose |
+|------|---------|
+| `read_artifact(artifact_id)` | Read full content when needed |
+| `tail_artifact(artifact_id, lines)` | Read last N lines (great for logs) |
+| `search_artifact(artifact_id, query)` | Search within large responses |
+| `list_artifacts()` | See all offloaded data in current session |
+
+---
+
+## Combined Power
+
+Enable both for maximum efficiency:
+
+```python
+agent = OmniCoreAgent(
+    name="research_agent",
+    agent_config={
+        "context_management": {"enabled": True, "strategy": "summarize_and_truncate"},
+        "tool_offload": {"enabled": True, "threshold_tokens": 500}
+    }
+)
+# Result: Agents that can run indefinitely without token exhaustion
+```
+
+<Tip>
+Enable both layers for long-running tasks (research, multi-step workflows) where context or tool responses can grow unbounded.
+</Tip>

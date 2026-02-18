@@ -24,6 +24,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from omnicoreagent import DeepAgent
+from omnicoreagent.community import TavilySearch
 
 # =============================================================================
 # CONFIGURATION - Real Tools Only
@@ -72,6 +73,9 @@ async def main():
         }
     ]
 
+    # Initialize community Tavily search tool
+    tavily_community = TavilySearch()
+
     agent = DeepAgent(
         name="DeepResearchAnalyst",
         system_instruction="""
@@ -94,17 +98,17 @@ You have advanced multi-agent orchestration via the **RPI+ workflow**:
 7. Synthesize: Cross-cutting insights with actionable recommendations
 
 Research methodology:
-- Use Tavily search for REAL, CURRENT market intelligence
+- Use tavily_search (community tool) for REAL, CURRENT market intelligence
+- Use Tavily MCP tools for additional search capabilities
 - Start with broad queries, progressively narrow down
 - Cross-reference multiple sources for validation
 - Document confidence levels for all findings
 - Distinguish facts from opinions/speculation
 - Note data recency and source reliability
 
-Available tools (via Tavily MCP):
-- tavily_search: Real-time internet search (broad exploration)
-- tavily_extract: Deep content extraction (specific sources)
-- tavily_qna: Quick factual answers (validation)
+Available tools:
+- tavily_search (community tool): Real-time internet search
+- Tavily MCP tools: tavily_search, tavily_extract, tavily_qna
 
 For complex research requiring multiple domains, spawn specialized subagents
 to investigate in parallel, then synthesize their findings with cross-cutting insights.
@@ -113,7 +117,8 @@ to investigate in parallel, then synthesize their findings with cross-cutting in
             "provider": "gemini",
             "model": "gemini-2.5-pro",
         },
-        mcp_tools=mcp_tools,
+        #mcp_tools=mcp_tools,
+        local_tools=[tavily_community],
         agent_config={
             "max_steps": 100,  # Increased for deep RPI+ with real search
             "memory_tool_backend": "r2",
@@ -123,7 +128,7 @@ to investigate in parallel, then synthesize their findings with cross-cutting in
 
     await agent.initialize()
     print(f"\n✅ Agent initialized: {agent.name}")
-    print("🔍 MCP Tools connected: Tavily Search Engine\n")
+    print("🔍 Tools connected: Tavily MCP + Tavily Community Search\n")
 
     print("=" * 80)
     print("📋 RESEARCH BRIEF")

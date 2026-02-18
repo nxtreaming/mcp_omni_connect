@@ -1,3 +1,9 @@
+---
+title: Memory Management
+description: 'Redis persistence, file history, and conversation management'
+icon: 'hard-drive'
+---
+
 # Memory Management
 
 OmniCoreAgent provides flexible memory management through Redis persistence and file-based conversation history, allowing you to maintain context across sessions and save important conversations.
@@ -18,27 +24,30 @@ Redis memory provides automatic conversation persistence across OmniCoreAgent se
 
 ### Setup Redis
 
-=== "Ubuntu/Debian"
+<Tabs>
+  <Tab title="Ubuntu/Debian">
     ```bash
     sudo apt update
     sudo apt install redis-server
     sudo systemctl start redis-server
     sudo systemctl enable redis-server
     ```
-
-=== "macOS"
+  </Tab>
+  <Tab title="macOS">
     ```bash
     brew install redis
     brew services start redis
     ```
-
-=== "Docker"
+  </Tab>
+  <Tab title="Docker">
     ```bash
     docker run -d --name redis -p 6379:6379 redis:alpine
     ```
-
-=== "Windows"
+  </Tab>
+  <Tab title="Windows">
     Download from [Redis Windows releases](https://github.com/microsoftarchive/redis/releases) or use WSL.
+  </Tab>
+</Tabs>
 
 ### Configuration
 
@@ -355,10 +364,11 @@ Organize conversations by project:
 
 ### When to Use Each Type
 
-!!! tip "Memory Type Selection"
-    - **Session Memory**: Default for temporary work
-    - **Redis Memory**: Long-running projects, development work
-    - **File History**: Important conversations, team sharing, backups
+<Tip title="Memory Type Selection">
+- **Session Memory**: Default for temporary work
+- **Redis Memory**: Long-running projects, development work
+- **File History**: Important conversations, team sharing, backups
+</Tip>
 
 ### Optimization Tips
 
@@ -395,7 +405,8 @@ Organize conversations by project:
 
 ### Redis Connection Issues
 
-!!! failure "Redis Connection Failed"
+<AccordionGroup>
+  <Accordion title="Redis Connection Failed">
     **Error**: `Could not connect to Redis`
 
     **Solutions**:
@@ -412,10 +423,8 @@ Organize conversations by project:
     # Test connection manually
     redis-cli -h localhost -p 6379
     ```
-
-### File Loading Issues
-
-!!! failure "File Not Found"
+  </Accordion>
+  <Accordion title="File Not Found">
     **Error**: `Could not load conversation file`
 
     **Solutions**:
@@ -429,10 +438,8 @@ Organize conversations by project:
     # Check file permissions
     chmod 644 conversation.json
     ```
-
-### Memory Performance Issues
-
-!!! failure "Slow Memory Operations"
+  </Accordion>
+  <Accordion title="Slow Memory Operations">
     **Issue**: Memory operations taking too long
 
     **Solutions**:
@@ -446,6 +453,8 @@ Organize conversations by project:
     # Reduce context size
     # Edit AgentConfig.memory_settings
     ```
+  </Accordion>
+</AccordionGroup>
 
 ## Advanced Memory Features
 

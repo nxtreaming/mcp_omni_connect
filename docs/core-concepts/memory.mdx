@@ -1,114 +1,95 @@
-# Memory System
+---
+title: Multi-Tier Memory
+description: '5 backends with runtime switching — Redis, MongoDB, PostgreSQL, SQLite, and in-memory'
+icon: 'database'
+---
 
-OmniCoreAgent features a flexible, multi-tier memory system that allows you to store and retrieve conversation history across different storage backends.
+# Multi-Tier Memory System
 
-## Supported Backends
-
-| Backend | Identifier | Description | Required Config |
-|---------|------------|-------------|-----------------|
-| **In-Memory** | `in_memory` | Fast, transient storage for development and testing. | None |
-| **Redis** | `redis` | High-performance persistence for production. | `REDIS_URL` |
-| **Database** | `database` | SQL persistence (PostgreSQL, MySQL, SQLite). | `DATABASE_URL` |
-| **MongoDB** | `mongodb` | Document-based persistence for complex JSON. | `MONGODB_URI` |
-| **File-Based** | `local` | Simple local file storage (via Memory Tool Backend). | None |
+**5 backends with runtime switching** — start with Redis, switch to MongoDB, then PostgreSQL — all on the fly!
 
 ---
 
-## Configuration
-
-To use a specific memory backend, you can pass a `MemoryRouter` during initialization or set environment variables.
-
-### Environment Variables
-
-```bash
-# Redis
-REDIS_URL=redis://localhost:6379/0
-
-# SQL Database
-DATABASE_URL=postgresql://user:pass@localhost:5432/db
-
-# MongoDB
-MONGODB_URI=mongodb://localhost:27017/omnicoreagent
-```
-
-### Manual Initialization
+## Quick Start
 
 ```python
 from omnicoreagent import OmniCoreAgent, MemoryRouter
 
-# Use Redis explicitly
+# Start with Redis
 agent = OmniCoreAgent(
-    ...
-    memory_router=MemoryRouter("redis")
+    name="my_agent",
+    memory_router=MemoryRouter("redis"),
+    model_config={"provider": "openai", "model": "gpt-4o"}
+)
+
+# Switch at runtime — no restart needed!
+await agent.switch_memory_store("mongodb")     # Switch to MongoDB
+await agent.switch_memory_store("database")    # Switch to PostgreSQL/MySQL/SQLite
+await agent.switch_memory_store("in_memory")   # Switch to in-memory
+await agent.switch_memory_store("redis")       # Back to Redis
+```
+
+---
+
+## Available Backends
+
+| Backend | Use Case | Environment Variable |
+|---------|----------|---------------------|
+| `in_memory` | Fast development | — |
+| `redis` | Production persistence | `REDIS_URL` |
+| `database` | PostgreSQL/MySQL/SQLite | `DATABASE_URL` |
+| `mongodb` | Document storage | `MONGODB_URI` |
+
+---
+
+## Conversation Summarization
+
+OmniCoreAgent includes **automatic conversation summarization** to manage long conversation histories efficiently. When enabled, older messages are condensed into summaries, keeping context while reducing token usage.
+
+```python
+from omnicoreagent import OmniCoreAgent, MemoryRouter
+
+# Configure summarization with sliding window
+memory_router = MemoryRouter(
+    store_type="redis",
+    memory_config={
+        "mode": "sliding_window",  # or "token_budget"
+        "value": 10,  # Keep last 10 messages (sliding_window) or max tokens (token_budget)
+        "summary": {
+            "enabled": True,
+            "retention_policy": "keep"  # Options: "keep" or "delete"
+        }
+    }
+)
+
+agent = OmniCoreAgent(
+    name="summarizing_agent",
+    memory_router=memory_router,
+    model_config={"provider": "openai", "model": "gpt-4o"}
 )
 ```
 
----
+### Summarization Modes
 
-## Runtime Switching
+| Mode | Description | Best For |
+|------|-------------|----------|
+| `sliding_window` | Keep last N messages, summarize older ones | Predictable memory size |
+| `token_budget` | Keep messages within token limit | Cost optimization |
 
-One of the most powerful features of OmniCoreAgent is the ability to switch memory stores at runtime. This is useful for migrating data or switching between fast cache and long-term storage.
+### Retention Policies
 
-```python
-# Start with in-memory for speed
-agent = OmniCoreAgent(name="my_agent", ...)
+| Policy | Behavior |
+|--------|----------|
+| `keep` | Mark summarized messages as inactive (recoverable) |
+| `delete` | Permanently remove summarized messages |
 
-# Switch to persistent database when needed
-await agent.swith_memory_store("database")
+### How It Works
 
-# Switch back to Redis for low-latency tasks
-await agent.swith_memory_store("redis")
-```
+1. When conversation exceeds configured limit → summarization triggers
+2. Older messages are sent to LLM for summary generation
+3. Summary replaces older messages in active context
+4. Original messages are retained (with `"keep"`) or deleted per policy
 
----
-
-## Memory Management
-
-The agent automatically handles message storage during `run()`. You can also manually interact with the history.
-
-### Retrieve History
-```python
-messages = await agent.get_session_history(session_id="user_1")
-```
-
-### Clear History
-```python
-# Clear a specific session
-await agent.clear_session_history(session_id="user_1")
-
-# Reset all memory for this agent
-await agent.clear_session_history()
-```
-
----
-
-## Memory Architectures
-
-### Sliding Window
-By default, the agent uses a sliding window to manage context window limits. You can configure this in `agent_config`.
-
-```python
-agent_config = {
-    "memory_config": {
-        "mode": "sliding_window", 
-        "value": 10000 # Keep last 10k tokens
-    }
-}
-```
-
-### Token Budget
-Manage history based on a strict token budget.
-
-```python
-agent_config = {
-    "memory_config": {
-        "mode": "token_budget", 
-        "value": 30000 # Strict 30k token limit
-    }
-}
-```
-
----
-
-> [!TIP]
-> For production deployments, we recommend using **Redis** for session cache and **PostgreSQL/MongoDB** for long-term archival.
+<Tip>
+Enable summarization for long-running conversations (support bots, research assistants) to maintain context while controlling costs. Use `sliding_window` for predictable behavior, `token_budget` for strict cost control.
+</Tip>

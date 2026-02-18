@@ -43,10 +43,15 @@
                         "pages": [
                             "docs/core-concepts/overview",
                             "docs/core-concepts/architecture",
-                            "docs/core-concepts/skills",
                             "docs/core-concepts/memory",
+                            "docs/core-concepts/context-engineering",
                             "docs/core-concepts/events",
                             "docs/core-concepts/mcp",
+                            "docs/core-concepts/local-tools",
+                            "docs/core-concepts/community-tools",
+                            "docs/core-concepts/skills",
+                            "docs/core-concepts/workspace-memory",
+                            "docs/core-concepts/guardrails",
                             "docs/core-concepts/sub-agents",
                             "docs/core-concepts/background-agents",
                             "docs/core-concepts/deep-agent",
@@ -64,6 +69,12 @@
                             "docs/how-to-guides/observability",
                             "docs/how-to-guides/models",
                             "docs/how-to-guides/omniserve"
+                        ]
+                    },
+                    {
+                        "group": "Changelog",
+                        "pages": [
+                            "docs/changelog"
                         ]
                     }
                 ]

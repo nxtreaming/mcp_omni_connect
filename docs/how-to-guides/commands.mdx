@@ -1,3 +1,9 @@
+---
+title: Commands Reference
+description: 'Complete reference for all OmniCoreAgent system commands'
+icon: 'terminal'
+---
+
 # Commands Reference
 
 OmniCoreAgent provides a comprehensive set of commands to control its behavior and interact with connected MCP servers.
@@ -320,21 +326,22 @@ For complex nested arguments:
 
 ### Prompt Examples by Type
 
-=== "Simple Parameters"
+<Tabs>
+  <Tab title="Simple Parameters">
     ```bash
     /prompt:weather/location=london
     /prompt:translate/text=hello/target_lang=spanish
     /prompt:file_info/path=/etc/hosts
     ```
-
-=== "Multiple Parameters"
+  </Tab>
+  <Tab title="Multiple Parameters">
     ```bash
     /prompt:search/query=python/type=files/directory=src
     /prompt:backup/source=/data/files/destination=/backup/target
     /prompt:deploy/env=staging/version=1.2.3/notify=true
     ```
-
-=== "Complex JSON"
+  </Tab>
+  <Tab title="Complex JSON">
     ```bash
     /prompt:complex_analysis/{
         "input": {
@@ -357,6 +364,8 @@ For complex nested arguments:
         }
     }
     ```
+  </Tab>
+</Tabs>
 
 ## Resource Access Commands
 
@@ -474,20 +483,23 @@ Commands behave differently based on current mode:
 
 ### Common Command Errors
 
-!!! failure "Command Not Found"
+<AccordionGroup>
+  <Accordion title="Command Not Found">
     **Error**: `/unknown_command`
 
     **Response**: `Unknown command. Type /help for available commands.`
-
-!!! failure "Invalid Arguments"
+  </Accordion>
+  <Accordion title="Invalid Arguments">
     **Error**: `/prompt:weather/invalid=args`
 
     **Response**: `Invalid arguments for prompt 'weather'. Expected: location`
-
-!!! failure "Server Not Connected"
+  </Accordion>
+  <Accordion title="Server Not Connected">
     **Error**: `/prompt:server_prompt/args=value`
 
     **Response**: `Server not found. Use /connections to see available servers.`
+  </Accordion>
+</AccordionGroup>
 
 ### Recovery Commands
 
@@ -535,12 +547,13 @@ echo "/save:csv_processing_results.json" >> automation.txt
 
 ### Efficient Command Usage
 
-!!! tip "Command Efficiency"
-    1. **Use shortcuts**: `/t` instead of `/tools` (if available)
-    2. **Group related commands**: Check status before major operations
-    3. **Save frequently**: Use `/save:` for important sessions
-    4. **Monitor usage**: Regular `/api_stats` checks
-    5. **Debug when needed**: Enable `/debug` for troubleshooting
+<Tip title="Command Efficiency">
+1. **Use shortcuts**: `/t` instead of `/tools` (if available)
+2. **Group related commands**: Check status before major operations
+3. **Save frequently**: Use `/save:` for important sessions
+4. **Monitor usage**: Regular `/api_stats` checks
+5. **Debug when needed**: Enable `/debug` for troubleshooting
+</Tip>
 
 ### Common Patterns
 

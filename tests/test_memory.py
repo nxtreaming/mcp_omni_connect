@@ -49,6 +49,10 @@ class TestInMemoryStore:
         return InMemoryStore()
 
     async def test_store_and_get_messages(self, memory):
+        """Test basic message storage and retrieval."""
+        await memory.store_message("user", "Hello", {"agent_name": "agent1"}, "session1")
+        
+        await memory.store_message(
             "assistant", "Hi there!", {"agent_name": "agent1"}, "session1"
         )
 
@@ -265,13 +269,13 @@ class TestDatabaseMessageStore:
         
         messages = await memory.get_messages("s1", "a")
         
-        # Should have window_size messages (1 summary + 2 recent)
-        assert len(messages) == 3
-        # First message should be the summary
-        assert messages[0].get("msg_metadata", {}).get("type") == "history_summary"
+        # Should have all 4 messages since no window is configured
+        assert len(messages) == 4
+        assert messages[0]["content"] == "Msg1"
+        assert messages[-1]["content"] == "Msg4"
         
-        # Wait for background persistence
-        await asyncio.sleep(0.5)
+        # Wait for background persistence (if any)
+        await asyncio.sleep(0.1)
 
 
             

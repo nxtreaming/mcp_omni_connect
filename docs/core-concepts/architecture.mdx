@@ -1,3 +1,9 @@
+---
+title: Architecture
+description: 'How OmniCoreAgent is built — layers, components, and data flow'
+icon: 'sitemap'
+---
+
 # Architecture
 
 OmniCoreAgent is built with a modular, extensible architecture designed for production-grade reliability and scalability. It follows a "layered" approach where each component can be swapped or extended without impacting the others.
@@ -62,21 +68,39 @@ The framework provides a unified interface for all external actions:
 
 ## Data Flow: Processing a Request
 
-1. **Initialization**: The agent loads its system instructions and tool indexes.
-2. **User Input**: A `run(query, session_id)` call triggers the workflow.
-3. **Context Retrieval**: The Memory Router fetches previous messages for the session.
-4. **Tool Discovery**: If advanced tool use is enabled, BM25 finds the top relevant tools for the current query.
-5. **LLM Interaction**: The reasoning loop begins. LiteLLM routes prompts to the configured provider.
-6. **Execution**: If the LLM requests a tool, the Tool Orchestrator executes it (local or remote).
-7. **Event Emission**: Throughout the process, the Event Router streams progress updates.
-8. **Finalization**: The agent returns the response and session ID to the application.
+<Steps>
+  <Step title="Initialization">
+    The agent loads its system instructions and tool indexes.
+  </Step>
+  <Step title="User Input">
+    A `run(query, session_id)` call triggers the workflow.
+  </Step>
+  <Step title="Context Retrieval">
+    The Memory Router fetches previous messages for the session.
+  </Step>
+  <Step title="Tool Discovery">
+    If advanced tool use is enabled, BM25 finds the top relevant tools for the current query.
+  </Step>
+  <Step title="LLM Interaction">
+    The reasoning loop begins. LiteLLM routes prompts to the configured provider.
+  </Step>
+  <Step title="Execution">
+    If the LLM requests a tool, the Tool Orchestrator executes it (local or remote).
+  </Step>
+  <Step title="Event Emission">
+    Throughout the process, the Event Router streams progress updates.
+  </Step>
+  <Step title="Finalization">
+    The agent returns the response and session ID to the application.
+  </Step>
+</Steps>
 
 ---
 
 ## Enterprise Features
 
 | Feature | Architectural Implementation |
-|---------|-----------------------------|
+|---------|------------------------------|
 | **Multi-Tenancy** | Session IDs isolate conversation states across different users. |
 | **Observability** | Native Opik tracing and Redis Stream event logging. |
 | **Fault Tolerance**| Built-in retries for tool calls and automatic connection recovery for MCP. |
@@ -84,5 +108,6 @@ The framework provides a unified interface for all external actions:
 
 ---
 
-> [!TIP]
-> This modular design allows you to use OmniCoreAgent as a lightweight local library or as the backbone of a high-scale, distributed AI platform.
+<Tip>
+This modular design allows you to use OmniCoreAgent as a lightweight local library or as the backbone of a high-scale, distributed AI platform.
+</Tip>

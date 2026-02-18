@@ -158,6 +158,13 @@ class DeepAgent:
 
         logger.info(f"DeepAgent '{self.name}': Initializing...")
 
+        # Handle user_local_tools: optionally convert list to ToolRegistry
+        if isinstance(self.user_local_tools, list):
+             registry = ToolRegistry()
+             for tool in self.user_local_tools:
+                 registry.register(tool)
+             self.user_local_tools = registry
+
         self._subagent_factory = SubagentFactory(
             base_model_config=self.model_config,
             mcp_tools=self.mcp_tools,

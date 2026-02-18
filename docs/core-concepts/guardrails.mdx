@@ -1,0 +1,55 @@
+---
+title: Guardrails
+description: 'Built-in prompt injection protection and safety guardrails'
+icon: 'shield-halved'
+---
+
+# Prompt Injection Guardrails
+
+Protect your agents against malicious inputs, jailbreaks, and instruction overrides before they reach the LLM.
+
+```python
+agent_config = {
+    "guardrail_config": {
+        "strict_mode": True,      # Block all suspicious inputs
+        "sensitivity": 0.85,      # 0.0 to 1.0 (higher = more sensitive)
+        "enable_pattern_matching": True,
+        "enable_heuristic_analysis": True
+    }
+}
+
+agent = OmniCoreAgent(..., agent_config=agent_config)
+
+# If a threat is detected:
+# result['response'] -> "I'm sorry, but I cannot process this request..."
+# result['guardrail_result'] -> Full metadata about the detected threat
+```
+
+---
+
+## Key Protections
+
+- **Instruction Overrides**: "Ignore previous instructions..."
+- **Jailbreaks**: DAN mode, roleplay escapes, etc.
+- **Toxicity & Abuse**: Built-in pattern recognition.
+- **Payload Splitting**: Detects fragmented attack attempts.
+
+---
+
+## Configuration Options
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `strict_mode` | `bool` | `False` | When `True`, any detection (even low confidence) blocks the request. |
+| `sensitivity` | `float` | `1.0` | Scaling factor for threat scores (0.0 to 1.0). Higher = more sensitive. |
+| `max_input_length` | `int` | `10000` | Maximum allowed query length before blocking. |
+| `enable_encoding_detection` | `bool` | `True` | Detects base64, hex, and other obfuscation attempts. |
+| `enable_heuristic_analysis` | `bool` | `True` | Analyzes prompt structure for typical attack patterns. |
+| `enable_sequential_analysis` | `bool` | `True` | Checks for phased attacks across multiple tokens. |
+| `enable_entropy_analysis` | `bool` | `True` | Detects high-entropy payloads common in injections. |
+| `allowlist_patterns` | `list` | `[]` | List of regex patterns that bypass safety checks. |
+| `blocklist_patterns` | `list` | `[]` | Custom regex patterns to always block. |
+
+<Warning>
+Always enable guardrails in user-facing applications to prevent prompt injection attacks and ensure agent reliability.
+</Warning>

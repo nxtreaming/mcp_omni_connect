@@ -66,6 +66,21 @@ class ToolRegistry:
         """Return a detailed representation of the ToolRegistry."""
         return self.__str__()
 
+    def register(self, tool: Tool | Any):
+        """Register a pre-constructed Tool object or a tool wrapper with get_tool()."""
+        if hasattr(tool, "get_tool") and callable(tool.get_tool):
+            tool = tool.get_tool()
+        
+        if not isinstance(tool, Tool):
+             raise TypeError(f"Expected Tool object or object with get_tool() method, got {type(tool)}")
+
+        self.tools[tool.name] = tool
+
+    def merge(self, other_registry: "ToolRegistry"):
+        """Merge tools from another registry into this one."""
+        self.tools.update(other_registry.tools)
+
+
     def register_tool(
         self,
         name: str | None = None,

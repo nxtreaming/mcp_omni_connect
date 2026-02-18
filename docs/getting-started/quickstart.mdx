@@ -1,56 +1,65 @@
+---
+title: Quick Start
+description: 'Build your first AI agent in under 30 seconds'
+icon: 'bolt'
+---
+
 # Quick Start
 
 Get your first AI agent running in under 30 seconds with OmniCoreAgent.
 
-## 1. Set API Key
+<Steps>
+  <Step title="Set API Key">
+    Create a `.env` file in your project directory:
 
-Create a `.env` file in your project directory:
+    ```bash
+    echo "LLM_API_KEY=your_openai_api_key_here" > .env
+    ```
 
-```bash
-echo "LLM_API_KEY=your_openai_api_key_here" > .env
-```
+    <Tip>
+    You can use keys from OpenAI, Anthropic, Google Gemini, Groq, DeepSeek, and more. See [Universal Model Support](/docs/how-to-guides/models).
+    </Tip>
+  </Step>
 
-!!! tip "Supported Providers"
-    You can use keys from OpenAI, Anthropic, Google Gemini, Groq, DeepSeek, and more.
+  <Step title="Create Your First Agent">
+    Create a file named `hello_agent.py`:
 
-## 2. Create Your First Agent
+    ```python
+    import asyncio
+    from omnicoreagent import OmniCoreAgent
 
-Create a file named `hello_agent.py`:
+    async def main():
+        # 1. Initialize the agent
+        agent = OmniCoreAgent(
+            name="my_agent",
+            system_instruction="You are a helpful assistant.",
+            model_config={"provider": "openai", "model": "gpt-4o"}
+        )
 
-```python
-import asyncio
-from omnicoreagent import OmniCoreAgent
+        # 2. Run a task
+        result = await agent.run("Hello, what can you do?")
+        print(f"Agent Response: {result['response']}")
 
-async def main():
-    # 1. Initialize the agent
-    agent = OmniCoreAgent(
-        name="my_agent",
-        system_instruction="You are a helpful assistant.",
-        model_config={"provider": "openai", "model": "gpt-4o"}
-    )
-    
-    # 2. Run a task
-    result = await agent.run("Hello, what can you do?")
-    print(f"Agent Response: {result['response']}")
-    
-    # 3. Cleanup
-    await agent.cleanup()
+        # 3. Cleanup
+        await agent.cleanup()
 
-if __name__ == "__main__":
-    asyncio.run(main())
-```
+    if __name__ == "__main__":
+        asyncio.run(main())
+    ```
+  </Step>
 
-## 3. Run It
+  <Step title="Run It">
+    ```bash
+    python hello_agent.py
+    ```
 
-```bash
-python hello_agent.py
-```
-
-**✅ That's it!** You just built an AI agent with session management, memory persistence, and error handling.
+    **✅ That's it!** You just built an AI agent with session management, memory persistence, and error handling.
+  </Step>
+</Steps>
 
 ---
 
-## 🚀 Adding Tools (MCP)
+## Adding Tools (MCP)
 
 OmniCoreAgent can connect to any MCP-compatible service. Here's how to add a filesystem tool:
 
@@ -75,7 +84,7 @@ result = await agent.run("List files in /tmp")
 
 ---
 
-## 🧠 Persistence with Session IDs
+## Persistence with Session IDs
 
 Agents remember context when you provide a `session_id`:
 
@@ -91,8 +100,14 @@ result2 = await agent.run("What is my name?", session_id="user_123")
 
 ## Next Steps
 
-Now that you've seen the basics:
-
-1. **[Explore Core Features](/core-concepts/overview)** - Deep dive into memory and events.
-2. **[Learn about Agent Types](/core-concepts/sub-agents)** - Build workflows and background agents.
-3. **[Advanced Tool Use](/how-to-guides/advanced-tools)** - Scale to 1000+ tools with BM25.
+<CardGroup cols={3}>
+  <Card title="Core Concepts" icon="brain" href="/docs/core-concepts/overview">
+    Deep dive into memory, events, and the agent API
+  </Card>
+  <Card title="Agent Types" icon="users" href="/docs/core-concepts/sub-agents">
+    Build workflows and background agents
+  </Card>
+  <Card title="Advanced Tools" icon="wand-magic-sparkles" href="/docs/how-to-guides/advanced-tools">
+    Scale to 1000+ tools with BM25 retrieval
+  </Card>
+</CardGroup>

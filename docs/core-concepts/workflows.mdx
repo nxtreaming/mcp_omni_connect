@@ -1,83 +1,129 @@
+---
+title: Workflow Agents
+description: 'Sequential, parallel, and router workflows for multi-agent orchestration'
+icon: 'diagram-project'
+---
+
 # Workflow Agents
 
-For tasks that require more than one agent working in concert, OmniCoreAgent provides high-level **Workflow Agents**. These allow you to orchestrate multiple agents in sequential, parallel, or routed patterns.
+Multi-agent orchestration patterns for complex task pipelines: **Sequential**, **Parallel**, and **Router** agents.
 
 ---
 
-## 🚀 SequentialAgent
+## Sequential Agent
 
-The `SequentialAgent` runs a list of sub-agents one after another. The output of the previous agent becomes the input (or context) for the next one.
-
-**Best for**: Clear, linear processes like "Analyze data -> Write report -> Proofread report".
+Run agents in order where each agent's output feeds into the next:
 
 ```python
-from omnicoreagent import SequentialAgent
+from omnicoreagent import OmniCoreAgent, SequentialAgent
 
-seq_agent = SequentialAgent(
-    sub_agents=[analyzer_agent, writer_agent, editor_agent]
-)
-
-result = await seq_agent.run(initial_task="Analyze these sales numbers and write a summary.")
-```
-
----
-
-## ⚡ ParallelAgent
-
-The `ParallelAgent` runs multiple agents simultaneously. Each agent handles a specific assigned task, and the results are returned as a consolidated dictionary.
-
-**Best for**: Speeding up independent tasks, like fetching data from three different sources at once.
-
-```python
-from omnicoreagent import ParallelAgent
-
-par_agent = ParallelAgent(
-    sub_agents=[agent_a, agent_b, agent_c]
-)
-
-results = await par_agent.run(
-    agent_tasks={
-        "agent_a": "Get user profile",
-        "agent_b": "Get order history",
-        "agent_c": "Get recommendation status"
-    }
-)
-```
-
----
-
-## 🚦 RouterAgent
-
-The `RouterAgent` uses an LLM to look at a user query and determine which sub-agent is best suited to handle it. It effectively acts as an intelligent dispatcher.
-
-**Best for**: Centralized help desks or complex systems with many specialists.
-
-```python
-from omnicoreagent import RouterAgent
-
-router = RouterAgent(
-    sub_agents=[billing_agent, technical_agent, sales_agent],
+# Define specialized agents
+researcher = OmniCoreAgent(
+    name="researcher",
+    system_instruction="Research the given topic thoroughly.",
     model_config={"provider": "openai", "model": "gpt-4o"}
 )
 
-# If the query is about an invoice, it routes to billing_agent automatically.
-result = await router.run(task="Why was I charged twice last month?")
+writer = OmniCoreAgent(
+    name="writer",
+    system_instruction="Write a report based on research findings.",
+    model_config={"provider": "openai", "model": "gpt-4o"}
+)
+
+reviewer = OmniCoreAgent(
+    name="reviewer",
+    system_instruction="Review and improve the report.",
+    model_config={"provider": "openai", "model": "gpt-4o"}
+)
+
+# Chain them together
+pipeline = SequentialAgent(
+    sub_agents=[researcher, writer, reviewer],
+    model_config={"provider": "openai", "model": "gpt-4o"}
+)
+result = await pipeline.run(task="Write a report on quantum computing")
 ```
 
 ---
 
-## Comparison Table
+## Parallel Agent
 
-| Workflow Type | Execution | Dependencies | Use Case |
-|---------------|-----------|--------------|----------|
-| **Sequential** | Serial | One-way (A -> B -> C) | Multi-stage manufacturing or editing. |
-| **Parallel** | Concurrent | None (Independent) | Batch processing and fast data retrieval. |
-| **Router** | Conditional | None (LLM decided) | Specialized support bots or tool gateways. |
+Run multiple agents simultaneously for independent tasks:
+
+```python
+from omnicoreagent import OmniCoreAgent, ParallelAgent
+
+code_agent = OmniCoreAgent(
+    name="code_reviewer",
+    system_instruction="Review code for bugs.",
+    model_config={"provider": "openai", "model": "gpt-4o"}
+)
+
+security_agent = OmniCoreAgent(
+    name="security_reviewer",
+    system_instruction="Check for security vulnerabilities.",
+    model_config={"provider": "openai", "model": "gpt-4o"}
+)
+
+perf_agent = OmniCoreAgent(
+    name="performance_reviewer",
+    system_instruction="Identify performance issues.",
+    model_config={"provider": "openai", "model": "gpt-4o"}
+)
+
+# Run all three simultaneously
+parallel = ParallelAgent(
+    sub_agents=[code_agent, security_agent, perf_agent],
+    model_config={"provider": "openai", "model": "gpt-4o"}
+)
+result = await parallel.run(task="Review this codebase")
+```
 
 ---
 
-## Best Practices
+## Router Agent
 
-1. **Context Management**: In a `SequentialAgent`, ensure each agent returns clear, concise information so the next agent has enough context to proceed without hitting token limits.
-2. **Error Isolation**: In a `ParallelAgent`, if one sub-agent fails, the framework will return the partial results plus the error. Check for these errors in your result dictionary.
-3. **Routing Instructions**: For `RouterAgent`, give your sub-agents very clear names and single-sentence descriptions so the LLM knows exactly when to use each one.
+Intelligently route tasks to the best-suited specialist:
+
+```python
+from omnicoreagent import OmniCoreAgent, RouterAgent
+
+code_agent = OmniCoreAgent(
+    name="code_expert",
+    system_instruction="You handle coding tasks.",
+    model_config={"provider": "openai", "model": "gpt-4o"}
+)
+
+data_agent = OmniCoreAgent(
+    name="data_expert",
+    system_instruction="You handle data analysis.",
+    model_config={"provider": "openai", "model": "gpt-4o"}
+)
+
+research_agent = OmniCoreAgent(
+    name="research_expert",
+    system_instruction="You handle research tasks.",
+    model_config={"provider": "openai", "model": "gpt-4o"}
+)
+
+# Router: Intelligent task routing
+router = RouterAgent(
+    sub_agents=[code_agent, data_agent, research_agent],
+    model_config={"provider": "openai", "model": "gpt-4o"}
+)
+result = await router.run(task="Find and summarize AI research")
+```
+
+---
+
+## When to Use Each Pattern
+
+| Pattern | Best For | Example |
+|---------|----------|---------|
+| **SequentialAgent** | Tasks that depend on each other (output of one → input of next) | Research → Write → Review |
+| **ParallelAgent** | Independent tasks that can run simultaneously for speed | Code + Security + Performance review |
+| **RouterAgent** | Intelligent task routing to specialized agents | Route "analyze sales" to data agent |
+
+<Tip>
+Combine patterns for complex workflows. For example, use a Router to select a pipeline, which then runs a Sequential or Parallel agent.
+</Tip>

@@ -1,14 +1,399 @@
 ---
 title: OmniServe
-description: 'Turn any OmniCoreAgent into a Production API.'
+description: 'Production-ready API server with WebSocket streaming and multi-tenancy'
+icon: 'server'
 ---
 
-**OmniServe** transforms your agent scripts into a production-grade REST API server with zero code changes.
+# OmniServe — Production API Server
 
-## 🚀 Quick Start
+**Turn any agent into a production-ready REST/SSE API with a single command.**
 
-One command to deploy:
+---
+
+## Agent File Requirements
+
+Your Python file must define **one of the following**:
+
+```python
+# Option 1: Define an `agent` variable
+from omnicoreagent import OmniCoreAgent
+
+agent = OmniCoreAgent(
+    name="MyAgent",
+    system_instruction="You are a helpful assistant.",
+    model_config={"provider": "gemini", "model": "gemini-2.0-flash"},
+)
+```
+
+```python
+# Option 2: Define a `create_agent()` function
+from omnicoreagent import OmniCoreAgent
+
+def create_agent():
+    """Factory function that returns an agent instance."""
+    return OmniCoreAgent(
+        name="MyAgent",
+        system_instruction="You are a helpful assistant.",
+        model_config={"provider": "gemini", "model": "gemini-2.0-flash"},
+    )
+```
+
+<Info>
+OmniServe looks for `agent` variable first, then `create_agent()` function. Your file must export one of these.
+</Info>
+
+---
+
+## Quick Start
+
+### Step 1: Create your agent file (`my_agent.py`)
+
+```python
+from omnicoreagent import OmniCoreAgent, ToolRegistry
+
+tools = ToolRegistry()
+
+@tools.register_tool("greet")
+def greet(name: str) -> str:
+    """Greet someone by name."""
+    return f"Hello, {name}!"
+
+@tools.register_tool("calculate")
+def calculate(expression: str) -> dict:
+    """Evaluate a math expression."""
+    import math
+    result = eval(expression, {"__builtins__": {}}, {"sqrt": math.sqrt, "pi": math.pi})
+    return {"expression": expression, "result": result}
+
+agent = OmniCoreAgent(
+    name="MyAgent",
+    system_instruction="You are a helpful assistant with access to greeting and calculation tools.",
+    model_config={"provider": "gemini", "model": "gemini-2.0-flash"},
+    local_tools=tools,
+)
+```
+
+### Step 2: Set environment variables
 
 ```bash
-omniserve run my_agent.py
+echo "LLM_API_KEY=your_api_key_here" > .env
 ```
+
+### Step 3: Run the server
+
+```bash
+omniserve run --agent my_agent.py
+```
+
+### Step 4: Test the API
+
+```bash
+# Health check
+curl http://localhost:8000/health
+
+# Run a query (sync)
+curl -X POST http://localhost:8000/run/sync \
+  -H "Content-Type: application/json" \
+  -d '{"query": "Greet Alice and calculate 2+2"}'
+
+# Run a query (streaming SSE)
+curl -X POST http://localhost:8000/run \
+  -H "Content-Type: application/json" \
+  -d '{"query": "What is sqrt(144)?"}'
+
+# Open interactive docs
+open http://localhost:8000/docs
+```
+
+---
+
+## CLI Commands
+
+| Command | Description |
+|---------|-------------|
+| `omniserve run` | Run your agent file as API server |
+| `omniserve quickstart` | Zero-code server with defaults |
+| `omniserve config` | View or generate configuration |
+| `omniserve generate-dockerfile` | Generate production Dockerfile |
+
+---
+
+## CLI Options: `omniserve run`
+
+```bash
+omniserve run \
+  --agent my_agent.py \        # Path to agent file (required)
+  --host 0.0.0.0 \             # Host to bind (default: 0.0.0.0)
+  --port 8000 \                # Port to bind (default: 8000)
+  --workers 1 \                # Worker processes (default: 1)
+  --auth-token YOUR_TOKEN \    # Enable Bearer token auth
+  --rate-limit 100 \           # Rate limit (requests per minute)
+  --cors-origins "*" \         # Comma-separated CORS origins
+  --no-docs \                  # Disable Swagger UI
+  --reload                     # Enable hot reload (development)
+```
+
+**Examples:**
+
+```bash
+# Basic run
+omniserve run --agent my_agent.py
+
+# With authentication
+omniserve run --agent my_agent.py --auth-token secret123
+
+# With rate limiting
+omniserve run --agent my_agent.py --rate-limit 100
+
+# Production settings
+omniserve run --agent my_agent.py \
+  --port 8000 \
+  --auth-token $AUTH_TOKEN \
+  --rate-limit 100 \
+  --cors-origins "https://myapp.com,https://api.myapp.com"
+
+# Development with hot reload
+omniserve run --agent my_agent.py --reload
+```
+
+---
+
+## CLI Options: `omniserve quickstart`
+
+Start a server instantly without writing any code:
+
+```bash
+omniserve quickstart \
+  --provider openai \          # LLM provider (openai, gemini, anthropic)
+  --model gpt-4o \             # Model name
+  --name QuickAgent \          # Agent name (default: QuickAgent)
+  --instruction "You are..." \ # System instruction
+  --port 8000                  # Port (default: 8000)
+```
+
+**Examples:**
+
+```bash
+# OpenAI
+omniserve quickstart --provider openai --model gpt-4o
+
+# Google Gemini
+omniserve quickstart --provider gemini --model gemini-2.0-flash
+
+# Anthropic Claude
+omniserve quickstart --provider anthropic --model claude-3-5-sonnet-20241022
+```
+
+---
+
+## API Endpoints
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| `POST` | `/run` | Yes* | SSE streaming response |
+| `POST` | `/run/sync` | Yes* | JSON response (blocking) |
+| `GET` | `/health` | No | Health check |
+| `GET` | `/ready` | No | Readiness check |
+| `GET` | `/prometheus` | No | Prometheus metrics |
+| `GET` | `/tools` | Yes* | List available tools |
+| `GET` | `/metrics` | Yes* | Agent usage metrics |
+| `GET` | `/docs` | No | Swagger UI |
+| `GET` | `/redoc` | No | ReDoc UI |
+
+*Auth required only if `--auth-token` is set.
+
+### Request/Response Examples
+
+```bash
+# Sync request (with auth)
+curl -X POST http://localhost:8000/run/sync \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -d '{"query": "What is 2+2?", "session_id": "user123"}'
+
+# Response:
+# {"response": "2+2 equals 4", "session_id": "user123", ...}
+
+# Streaming SSE request
+curl -X POST http://localhost:8000/run \
+  -H "Content-Type: application/json" \
+  -d '{"query": "Explain quantum computing"}'
+
+# List tools
+curl http://localhost:8000/tools \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+---
+
+## Environment Variables
+
+All settings via `OMNISERVE_*` prefix. **Environment variables always override code values.**
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `OMNISERVE_HOST` | `0.0.0.0` | Server host |
+| `OMNISERVE_PORT` | `8000` | Server port |
+| `OMNISERVE_WORKERS` | `1` | Worker processes |
+| `OMNISERVE_API_PREFIX` | `""` | API path prefix (e.g., `/api/v1`) |
+| `OMNISERVE_ENABLE_DOCS` | `true` | Swagger UI at `/docs` |
+| `OMNISERVE_ENABLE_REDOC` | `true` | ReDoc at `/redoc` |
+| `OMNISERVE_CORS_ENABLED` | `true` | Enable CORS |
+| `OMNISERVE_CORS_ORIGINS` | `*` | Allowed origins (comma-separated) |
+| `OMNISERVE_CORS_CREDENTIALS` | `true` | Allow credentials |
+| `OMNISERVE_AUTH_ENABLED` | `false` | Enable Bearer token auth |
+| `OMNISERVE_AUTH_TOKEN` | — | Bearer token value |
+| `OMNISERVE_RATE_LIMIT_ENABLED` | `false` | Enable rate limiting |
+| `OMNISERVE_RATE_LIMIT_REQUESTS` | `100` | Requests per window |
+| `OMNISERVE_RATE_LIMIT_WINDOW` | `60` | Window in seconds |
+| `OMNISERVE_REQUEST_LOGGING` | `true` | Log requests |
+| `OMNISERVE_LOG_LEVEL` | `INFO` | Log level (DEBUG/INFO/WARNING/ERROR) |
+| `OMNISERVE_REQUEST_TIMEOUT` | `300` | Request timeout in seconds |
+
+**Example `.env` file:**
+
+```bash
+# Required
+LLM_API_KEY=your_api_key_here
+
+# OmniServe settings
+OMNISERVE_PORT=8000
+OMNISERVE_AUTH_ENABLED=true
+OMNISERVE_AUTH_TOKEN=my-secret-token
+OMNISERVE_RATE_LIMIT_ENABLED=true
+OMNISERVE_RATE_LIMIT_REQUESTS=100
+OMNISERVE_CORS_ORIGINS=https://myapp.com,https://api.myapp.com
+```
+
+---
+
+## Docker Deployment
+
+### Generate a Dockerfile
+
+```bash
+omniserve generate-dockerfile --file my_agent.py
+```
+
+### Build and run
+
+```bash
+docker build -t omniserver .
+docker run -p 8000:8000 -e LLM_API_KEY=$LLM_API_KEY omniserver
+```
+
+**Smart Configuration** — The generator inspects your agent and configures storage automatically:
+
+| Your Agent Uses | Dockerfile Sets |
+|-----------------|-----------------|
+| No memory tools | `AGENT_PATH`, `OMNICOREAGENT_ARTIFACTS_DIR` |
+| Local memory | + `OMNICOREAGENT_MEMORY_DIR=/tmp/memories` |
+| S3/R2 memory | Pass credentials at runtime with `-e` |
+
+### Cloud deployment examples
+
+```bash
+# Local memory (ephemeral)
+docker run -p 8000:8000 -e LLM_API_KEY=$LLM_API_KEY omniserver
+
+# AWS S3 memory (persistent)
+docker run -p 8000:8000 \
+  -e LLM_API_KEY=$LLM_API_KEY \
+  -e AWS_S3_BUCKET=my-bucket \
+  -e AWS_ACCESS_KEY_ID=... \
+  -e AWS_SECRET_ACCESS_KEY=... \
+  -e AWS_REGION=us-east-1 \
+  omniserver
+
+# Cloudflare R2 memory (persistent)
+docker run -p 8000:8000 \
+  -e LLM_API_KEY=$LLM_API_KEY \
+  -e R2_BUCKET_NAME=my-bucket \
+  -e R2_ACCOUNT_ID=... \
+  -e R2_ACCESS_KEY_ID=... \
+  -e R2_SECRET_ACCESS_KEY=... \
+  omniserver
+```
+
+---
+
+## Python API (Programmatic Control)
+
+For full programmatic control, use `OmniServe` directly in your Python script:
+
+```python
+from omnicoreagent import OmniCoreAgent, OmniServe, OmniServeConfig, ToolRegistry
+
+tools = ToolRegistry()
+
+@tools.register_tool("get_time")
+def get_time() -> dict:
+    from datetime import datetime
+    return {"time": datetime.now().isoformat()}
+
+agent = OmniCoreAgent(
+    name="MyAgent",
+    system_instruction="You are a helpful assistant.",
+    model_config={"provider": "gemini", "model": "gemini-2.0-flash"},
+    local_tools=tools,
+)
+
+config = OmniServeConfig(
+    host="0.0.0.0",
+    port=8000,
+    auth_enabled=True,
+    auth_token="my-secret-token",
+    rate_limit_enabled=True,
+    rate_limit_requests=100,
+    rate_limit_window=60,
+    cors_origins=["*"],
+    enable_docs=True,
+)
+
+if __name__ == "__main__":
+    server = OmniServe(agent, config=config)
+    server.start()
+```
+
+Run with Python directly:
+
+```bash
+echo "LLM_API_KEY=your_api_key" > .env
+python server.py
+```
+
+<Info>
+**CLI vs Python API:**
+- `omniserve run --agent my_agent.py` — CLI loads your agent file and applies CLI flags
+- `python server.py` — You control everything programmatically via `OmniServeConfig`
+</Info>
+
+<Warning>
+**Environment Variable Precedence:** `.env` variables **always override** values set in `OmniServeConfig`.
+</Warning>
+
+---
+
+## Advanced: Resilience Patterns
+
+Import retry and circuit breaker for custom use:
+
+```python
+from omnicoreagent import RetryConfig, CircuitBreaker, with_retry
+
+@with_retry(RetryConfig(max_retries=5, strategy="exponential"))
+async def call_external_api():
+    ...
+
+breaker = CircuitBreaker("api", failure_threshold=3, timeout=60)
+async with breaker:
+    result = await risky_call()
+```
+
+<Tip>
+OmniServe is perfect for deploying agents as microservices, webhooks, chatbots, or any HTTP-accessible AI capability.
+</Tip>
+
+---
+
+**Learn More**: See [OmniServe Cookbook](https://github.com/omnirexflora-labs/omnicoreagent/tree/main/cookbook/omniserve) for more examples.

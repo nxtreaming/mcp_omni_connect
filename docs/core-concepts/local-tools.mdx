@@ -1,0 +1,125 @@
+---
+title: Local Tools
+description: 'Register Python functions as AI-callable tools with ToolRegistry'
+icon: 'wrench'
+---
+
+# Local Tools System
+
+Register any Python function as an AI tool using the `ToolRegistry`:
+
+```python
+from omnicoreagent import ToolRegistry
+
+tools = ToolRegistry()
+
+@tools.register_tool("get_weather")
+def get_weather(city: str) -> str:
+    """Get weather for a city."""
+    return f"Weather in {city}: Sunny, 25°C"
+
+@tools.register_tool("calculate_area")
+def calculate_area(length: float, width: float) -> str:
+    """Calculate rectangle area."""
+    return f"Area: {length * width} square units"
+
+agent = OmniCoreAgent(
+    name="tool_agent",
+    local_tools=tools,  # Your custom tools!
+    ...
+)
+```
+
+---
+
+## How It Works
+
+1. **Decorate** any Python function with `@tools.register_tool("tool_name")`
+2. **Type hints** are automatically converted into JSON Schema for the LLM
+3. **Docstrings** become tool descriptions the LLM uses to decide when to call the tool
+4. **Pass** the `ToolRegistry` to your agent via `local_tools=`
+
+---
+
+## Async Tools
+
+Async functions work seamlessly:
+
+```python
+@tools.register_tool("fetch_data")
+async def fetch_data(url: str) -> dict:
+    """Fetch data from a URL."""
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url)
+        return response.json()
+```
+
+---
+
+## Class-Based Tools
+
+For more complex tools, use a class with a `get_tool()` method:
+
+```python
+from omnicoreagent import Tool
+
+class DatabaseTool:
+    def __init__(self, connection_string: str):
+        self.conn = connection_string
+
+    def get_tool(self) -> Tool:
+        return Tool(
+            name="query_db",
+            description="Run a SQL query against the database.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string", "description": "SQL query to execute"}
+                },
+                "required": ["query"]
+            },
+            function=self._query,
+        )
+
+    async def _query(self, query: str) -> dict:
+        # Your database logic
+        return {"status": "success", "data": [...], "message": "Query executed"}
+```
+
+Register class-based tools:
+
+```python
+registry = ToolRegistry()
+registry.register(DatabaseTool(connection_string="postgresql://..."))
+```
+
+---
+
+## Mixing Custom + Community Tools
+
+```python
+from omnicoreagent import OmniCoreAgent, ToolRegistry
+from omnicoreagent.community import TavilySearch, CalculatorTool
+
+# Create registry with custom tools
+tools = ToolRegistry()
+
+@tools.register_tool("greet")
+def greet(name: str) -> str:
+    """Greet someone."""
+    return f"Hello, {name}!"
+
+# Add community tools
+tools.register(TavilySearch())
+tools.register(CalculatorTool())
+
+agent = OmniCoreAgent(
+    name="hybrid_agent",
+    local_tools=tools,  # Custom + community tools together
+    ...
+)
+```
+
+<Tip>
+Use Local Tools when you need custom business logic, internal APIs, or any Python functionality that isn't available via MCP servers or community tools.
+</Tip>

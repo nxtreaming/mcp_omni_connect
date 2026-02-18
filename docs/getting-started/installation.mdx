@@ -1,13 +1,21 @@
+---
+title: Installation
+description: 'Install OmniCoreAgent and get set up in minutes'
+icon: 'download'
+---
+
 # Installation
 
 ## Prerequisites
 
 Before installing OmniCoreAgent, ensure you have the following:
 
-!!! info "System Requirements"
-    - **Python 3.10+** (Python 3.11+ recommended)
-    - **LLM API key** from any supported provider (OpenAI, Anthropic, Google, etc.)
-    - **UV package manager** (recommended) or pip
+<Info>
+**System Requirements:**
+- **Python 3.10+** (Python 3.11+ recommended)
+- **LLM API key** from any supported provider (OpenAI, Anthropic, Google, etc.)
+- **UV package manager** (recommended) or pip
+</Info>
 
 ### Check Python Version
 
@@ -20,46 +28,48 @@ python --version
 
 UV is faster than pip and handles dependencies more reliably:
 
-=== "macOS/Linux"
+<Tabs>
+  <Tab title="macOS/Linux">
     ```bash
     curl -LsSf https://astral.sh/uv/install.sh | sh
     ```
-
-=== "Windows"
+  </Tab>
+  <Tab title="Windows">
     ```powershell
     powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
     ```
-
-=== "Python pip"
+  </Tab>
+  <Tab title="Python pip">
     ```bash
     pip install uv
     ```
+  </Tab>
+</Tabs>
 
 ---
 
 ## Installation Methods
 
-### Method 1: UV (Recommended)
-
-```bash
-uv add omnicoreagent
-```
-
-### Method 2: pip
-
-```bash
-pip install omnicoreagent
-```
-
-### Method 3: From Source
-
-For development or latest features:
-
-```bash
-git clone https://github.com/omnirexflora-labs/omnicoreagent.git
-cd omnicoreagent
-uv sync
-```
+<Tabs>
+  <Tab title="UV (Recommended)">
+    ```bash
+    uv add omnicoreagent
+    ```
+  </Tab>
+  <Tab title="pip">
+    ```bash
+    pip install omnicoreagent
+    ```
+  </Tab>
+  <Tab title="From Source">
+    For development or latest features:
+    ```bash
+    git clone https://github.com/omnirexflora-labs/omnicoreagent.git
+    cd omnicoreagent
+    uv sync
+    ```
+  </Tab>
+</Tabs>
 
 ---
 
@@ -73,50 +83,54 @@ python -c "import omnicoreagent; print(omnicoreagent.__version__)"
 
 ---
 
-## Next Steps
+## Troubleshooting
 
-Once installation is complete:
-
-1. **[Follow the Quick Start guide](/getting-started/quickstart)** - Build your first agent in under 30 seconds.
-2. **[Explore Core Features](/core-concepts/overview)** - Learn about memory, events, and tools.
-3. **[Set up configuration](/how-to-guides/configuration)** - Learn about environment variables and agent settings.
-
-## Troubleshooting Installation
-
-### Common Issues
-
-!!! failure "Python Version Error"
+<AccordionGroup>
+  <Accordion title="Python Version Error">
     **Error**: `OmniCoreAgent requires Python 3.10+`
 
     **Solution**: Upgrade your Python version:
     ```bash
     # Check available Python versions
-    python3.10 --version  # or python3.11, python3.12
+    python3.11 --version
 
     # Use specific Python version with UV
     uv python install 3.11
     uv add omnicoreagent
     ```
-
-!!! failure "Permission Denied"
+  </Accordion>
+  <Accordion title="Permission Denied">
     **Error**: Permission denied during installation
 
     **Solution**: Use user installation:
     ```bash
     pip install --user omnicoreagent
     ```
+  </Accordion>
+  <Accordion title="Getting Help">
+    If you encounter issues:
 
-### Getting Help
-
-If you encounter issues:
-
-1. Search [existing issues](https://github.com/omnirexflora-labs/omnicoreagent/issues)
-2. Create a [new issue](https://github.com/omnirexflora-labs/omnicoreagent/issues/new) with:
-   - Your operating system
-   - Python version
-   - Installation method used
-   - Complete error message
+    1. Search [existing issues](https://github.com/omnirexflora-labs/omnicoreagent/issues)
+    2. Create a [new issue](https://github.com/omnirexflora-labs/omnicoreagent/issues/new) with:
+       - Your operating system
+       - Python version
+       - Installation method used
+       - Complete error message
+  </Accordion>
+</AccordionGroup>
 
 ---
 
-**Next**: [Quick Start Guide →](/getting-started/quickstart)
+## Next Steps
+
+<CardGroup cols={3}>
+  <Card title="Quick Start" icon="bolt" href="/docs/getting-started/quickstart">
+    Build your first agent in under 30 seconds
+  </Card>
+  <Card title="Core Concepts" icon="brain" href="/docs/core-concepts/overview">
+    Learn about memory, events, and tools
+  </Card>
+  <Card title="Configuration" icon="gear" href="/docs/how-to-guides/configuration">
+    Environment variables and agent settings
+  </Card>
+</CardGroup>

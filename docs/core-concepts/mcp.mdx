@@ -1,33 +1,20 @@
-# MCP Client Integration
+---
+title: MCP Client
+description: 'Built-in Model Context Protocol support — stdio, SSE, and Streamable HTTP'
+icon: 'plug'
+---
 
-OmniCoreAgent features a robust, built-in client for the **Model Context Protocol (MCP)**. It allows your agents to connect to any MCP-compliant server to access tools, resources, and context.
+# Built-in MCP Client
 
-## Configuration
-
-MCP servers are configured via the `mcp_tools` parameter during agent initialization.
-
-```python
-agent = OmniCoreAgent(
-    ...
-    mcp_tools=[
-        {
-            "name": "my_server",
-            "transport_type": "stdio",
-            "command": "npx",
-            "args": ["-y", "@user/mcp-server-example"]
-        }
-    ]
-)
-```
+Connect to any MCP-compatible service with support for multiple transport protocols and authentication methods.
 
 ---
 
 ## Transport Types
 
-OmniCoreAgent supports three primary transport methods:
+### 1. stdio — Local MCP servers
 
-### 1. `stdio` (Local)
-Used for local MCP servers running as separate processes. This is the most common for CLI-based servers.
+Process communication with local CLI tools:
 
 ```python
 {
@@ -38,52 +25,21 @@ Used for local MCP servers running as separate processes. This is the most commo
 }
 ```
 
-### 2. `streamable_http` (Remote)
-Used for remote servers communicating over HTTP. Supports full streaming and complex authentication.
+### 2. streamable_http — Remote servers with HTTP streaming
 
 ```python
+# With Bearer Token
 {
     "name": "github",
     "transport_type": "streamable_http",
-    "url": "http://api.myserver.com/mcp",
-    "headers": {"Authorization": "Bearer key"}
-}
-```
-
-### 3. `sse` (Real-time)
-Used for Server-Sent Events transports, typically for real-time data streaming.
-
-```python
-{
-    "name": "live_data",
-    "transport_type": "sse",
-    "url": "http://localhost:3000/sse"
-}
-```
-
----
-
-## Authentication
-
-The built-in client supports production-grade authentication methods.
-
-### Bearer Token
-Simple header-based authentication.
-
-```python
-{
-    "name": "private_api",
-    "transport_type": "streamable_http",
+    "url": "http://localhost:8080/mcp",
     "headers": {
-        "Authorization": "Bearer your_secret_token"
-    }
+        "Authorization": "Bearer your-token"  # optional
+    },
+    "timeout": 60  # optional
 }
-```
 
-### OAuth 2.0
-Supports full OAuth 2.0 flows. When initialized, the agent will handle the token exchange.
-
-```python
+# With OAuth 2.0 (auto-starts callback server on localhost:3000)
 {
     "name": "oauth_server",
     "transport_type": "streamable_http",
@@ -94,38 +50,72 @@ Supports full OAuth 2.0 flows. When initialized, the agent will handle the token
 }
 ```
 
----
-
-## Managing Connections
-
-### Connecting
-Always remember to connect to your servers before running tasks.
+### 3. sse — Server-Sent Events
 
 ```python
+{
+    "name": "sse_server",
+    "transport_type": "sse",
+    "url": "http://localhost:3000/sse",
+    "headers": {
+        "Authorization": "Bearer token"  # optional
+    },
+    "timeout": 60,  # optional
+    "sse_read_timeout": 120  # optional
+}
+```
+
+---
+
+## Complete Example with All 3 Transport Types
+
+```python
+agent = OmniCoreAgent(
+    name="multi_mcp_agent",
+    system_instruction="You have access to filesystem, GitHub, and live data.",
+    model_config={"provider": "openai", "model": "gpt-4o"},
+    mcp_tools=[
+        # 1. stdio - Local filesystem
+        {
+            "name": "filesystem",
+            "transport_type": "stdio",
+            "command": "npx",
+            "args": ["-y", "@modelcontextprotocol/server-filesystem", "/home"]
+        },
+        # 2. streamable_http - Remote API (supports Bearer token or OAuth)
+        {
+            "name": "github",
+            "transport_type": "streamable_http",
+            "url": "http://localhost:8080/mcp",
+            "headers": {"Authorization": "Bearer github-token"},
+            "timeout": 60
+        },
+        # 3. sse - Real-time streaming
+        {
+            "name": "live_data",
+            "transport_type": "sse",
+            "url": "http://localhost:3000/sse",
+            "headers": {"Authorization": "Bearer token"},
+            "sse_read_timeout": 120
+        }
+    ]
+)
+
 await agent.connect_mcp_servers()
-```
-
-### Listing Tools
-Verify your connections by listing available tools.
-
-```python
-tools = await agent.list_all_available_tools()
-```
-
-### Cleanup
-Properly close all MCP connections when the agent is no longer needed.
-
-```python
-await agent.cleanup()
+tools = await agent.list_all_available_tools()  # All MCP + local tools
+result = await agent.run("List all Python files and get latest commits")
 ```
 
 ---
 
-## Technical Details
+## Transport Comparison
 
-| Feature | Description |
-|---------|-------------|
-| **Isolation** | Each MCP server runs in its own connection context. |
-| **Timeout** | Configurable via `tool_call_timeout` in agent settings. |
-| **Discovery** | Tools are automatically discovered and converted to agent-ready formats. |
-| **Retries** | Built-in retry logic for transient connection failures. |
+| Transport | Use Case | Auth Methods |
+|-----------|----------|-------------|
+| `stdio` | Local MCP servers, CLI tools | None (local process) |
+| `streamable_http` | Remote APIs, cloud services | Bearer token, OAuth 2.0 |
+| `sse` | Real-time data, streaming | Bearer token, custom headers |
+
+<Tip>
+Use MCP when you need to connect to external tools and services. Choose `stdio` for local CLI tools, `streamable_http` for REST APIs, and `sse` for real-time streaming data.
+</Tip>

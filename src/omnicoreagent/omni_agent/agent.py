@@ -68,7 +68,17 @@ class OmniCoreAgent:
         self.system_instruction = system_instruction
         self.model_config = model_config
         self.mcp_tools = mcp_tools or []
-        self.local_tools = local_tools
+        
+        # Handle local_tools: optionally convert list to ToolRegistry
+        if isinstance(local_tools, list):
+             from omnicoreagent.core.tools.local_tools_registry import ToolRegistry
+             registry = ToolRegistry()
+             for tool in local_tools:
+                 registry.register(tool)
+             self.local_tools = registry
+        else:
+            self.local_tools = local_tools
+
         self.sub_agents = sub_agents
         self.agent_config = agent_config
 
