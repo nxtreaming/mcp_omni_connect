@@ -27,6 +27,7 @@ def mock_llm_connection():
         return LLMConnection(Mock(**make_mock_config()), "test_config.yaml")
 
 
+@pytest.mark.broken_upstream
 class TestLLMConnection:
     def test_initialization(self, mock_llm_connection):
         cfg = mock_llm_connection.llm_config

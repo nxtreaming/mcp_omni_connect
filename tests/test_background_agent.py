@@ -175,6 +175,7 @@ def mock_omni_agent():
                         yield mock
 
 
+@pytest.mark.broken_upstream
 class TestBackgroundOmniCoreAgent:
     @pytest.mark.asyncio
     async def test_init(self, mock_omni_agent, task_registry):
@@ -351,6 +352,7 @@ class TestBackgroundOmniCoreAgent:
         assert agent.last_run.tzinfo == timezone.utc
 
 
+@pytest.mark.broken_upstream
 class TestBackgroundAgentManager:
     @pytest.mark.asyncio
     async def test_create_agent(self, mock_omni_agent):

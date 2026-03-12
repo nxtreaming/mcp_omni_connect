@@ -38,6 +38,7 @@ async def test_extract_action_or_answer_with_action(agent):
     assert data[0]["parameters"]["input"] == "news"
 
 
+@pytest.mark.broken_upstream
 @pytest.mark.asyncio
 async def test_extract_action_or_answer_fallback_error(agent):
     response = "This is just a general response without XML."

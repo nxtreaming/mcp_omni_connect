@@ -45,6 +45,8 @@ import io
 
 from botocore.exceptions import ClientError
 
+pytestmark = [pytest.mark.requires_api_key, pytest.mark.requires_network]
+
 
 # ============================================================================
 # Test Fixtures - Common Setup
