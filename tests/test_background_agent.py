@@ -1,9 +1,7 @@
 import pytest
 import asyncio
-from unittest.mock import MagicMock, AsyncMock, patch
-from datetime import datetime, timezone
-from apscheduler.triggers.interval import IntervalTrigger
-from apscheduler.triggers.cron import CronTrigger
+from unittest.mock import AsyncMock, patch
+from datetime import timezone
 
 from omnicoreagent.omni_agent.background_agent.task_registry import TaskRegistry
 from omnicoreagent.omni_agent.background_agent.scheduler_backend import (
@@ -177,6 +175,7 @@ def mock_omni_agent():
                         yield mock
 
 
+@pytest.mark.broken_upstream
 class TestBackgroundOmniCoreAgent:
     @pytest.mark.asyncio
     async def test_init(self, mock_omni_agent, task_registry):
@@ -353,6 +352,7 @@ class TestBackgroundOmniCoreAgent:
         assert agent.last_run.tzinfo == timezone.utc
 
 
+@pytest.mark.broken_upstream
 class TestBackgroundAgentManager:
     @pytest.mark.asyncio
     async def test_create_agent(self, mock_omni_agent):

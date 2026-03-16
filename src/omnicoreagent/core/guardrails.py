@@ -244,10 +244,10 @@ class PatternManager:
                         r"\b(?:s\s*e\s*c\s*r\s*e\s*t|i\s*n\s*j\s*e\s*c\s*t|o\s*v\s*e\s*r\s*r\s*i\s*d\s*e)",
                         False,
                     ),
-                    (r"(.)\1{3,}", False),
-                    (r"[^\w\s]{4,}", False),
+                    (r"([^\[\]{}()\"',:\n])\1{3,}", False),
+                    (r"[^\w\s{}\[\]():,\"'.=/\\-]{4,}", False),
                     (
-                        r"\b\w*[\d_]\w*[\d_]\w*\b",
+                        r"\b[a-zA-Z]*\d[a-zA-Z]+\d[a-zA-Z]*\d[a-zA-Z]*\b",
                         False,
                     ),
                 ],

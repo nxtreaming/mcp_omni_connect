@@ -12,11 +12,9 @@ This example demonstrates EVERY capability of the BackgroundAgentManager:
 """
 
 import asyncio
-import os
 import random
-import time
 import logging
-from datetime import datetime, timezone
+from datetime import datetime
 
 # Configure structured logging
 logging.basicConfig(
@@ -26,10 +24,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger("background_demo")
 
-from omnicoreagent import (
+from omnicoreagent import (  # noqa: E402
     BackgroundAgentManager,
-    MemoryRouter,
-    EventRouter,
     ToolRegistry,
 )
 

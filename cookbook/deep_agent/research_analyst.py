@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from omnicoreagent import DeepAgent
+from omnicoreagent import DeepAgent  # noqa: E402
 
 
 async def main():
@@ -30,11 +30,11 @@ You conduct thorough research, create structured analyses, and provide strategic
     )
 
     await agent.initialize()
-    print(f"✓ Research Agent initialized")
+    print("✓ Research Agent initialized")
 
     result = await agent.run("""
     Analyze the top 3 cloud providers (AWS, Azure, GCP) for AI workloads.
-    
+
     Research their AI/ML offerings, then create a comparison and recommendation.
     """)
 
